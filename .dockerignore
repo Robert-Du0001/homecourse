@@ -1,0 +1,9 @@
+node_modules
+.git
+.vscode
+public
+homecourse
+
+storage/app/courses
+storage/logs/*
+storage/temp/*

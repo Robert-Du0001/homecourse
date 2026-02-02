@@ -1,15 +1,21 @@
 package routes
 
 import (
+	"homecourse/app/http/controllers"
+
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
-	"github.com/goravel/framework/support"
 )
 
 func Web() {
-	facades.Route().Get("/", func(ctx http.Context) http.Response {
-		return ctx.Response().View().Make("welcome.tmpl", map[string]any{
-			"version": support.Version,
-		})
+	// 处理静态文件
+	facades.Route().Static("assets", "public/assets")
+	facades.Route().Static("img", "public/img")
+	facades.Route().StaticFile("favicon.svg", "public/favicon.svg")
+
+	facades.Route().Get("/media/{id}", controllers.NewEpisodeController().Play)
+
+	facades.Route().Fallback(func(ctx http.Context) http.Response {
+		return ctx.Response().File("public/index.html")
 	})
 }
