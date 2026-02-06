@@ -4,10 +4,10 @@
 
 <style scoped lang="scss">
 html, body, #app {
+  height: 100%;
   padding: 0;
   margin: 0;
-  height: 100%;
-  background-color: #f8f8f8;
+  background-color: rgb(248 248 248);
 }
 
 *, *::before, *::after {
@@ -18,4 +18,3 @@ li, ol {
   list-style: none;
 }
 </style>
-

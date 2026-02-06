@@ -1,0 +1,16 @@
+{
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "stylelint.validate": [
+     "css", "scss", "vue"
+  ],
+
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.stylelint": "explicit"
+  },
+
+  "typescript.tsdk": "node_modules/typescript/lib", // 强制使用项目本地的 TS 版本
+  "typescript.enablePromptUseWorkspaceTsdk": true
+}

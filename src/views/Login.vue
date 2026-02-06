@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { FormInstance, FormRules } from 'element-plus';
+import type { UserResource } from '@/types/user';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/store/user';
@@ -8,7 +10,7 @@ import { ElMessage } from 'element-plus';
 const router = useRouter();
 const userStore = useUserStore();
 
-let labelPosition = ref('right');
+let labelPosition = ref<'left' | 'right' | 'top'>('right');
 
 onMounted(() => {
   // 相当于Element+规定的xs尺寸
@@ -28,7 +30,7 @@ onMounted(() => {
   });
 });
 
-const formRef = ref();
+const formRef = ref<FormInstance>();
 const btnDisabled = ref(false);
 
 const ruleForm = ref({
@@ -37,7 +39,7 @@ const ruleForm = ref({
   remember: false,
 });
 
-const rules = ref({
+const rules = ref<FormRules>({
   name: [
     { required: true, message: '账号不能为空', trigger: 'blur' },
     { max: 10, message: '账号不能超过10个字符', trigger: 'blur' },
@@ -48,24 +50,26 @@ const rules = ref({
   ],
 });
 
-const submitForm = async (formEl) => {
+const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
 
-  await formEl.validate(async (valid) => {
+  await formEl.validate((valid) => {
     if (valid) {
       btnDisabled.value = true;
-      try {
-        const { msg, data } = await request('post', '/users/token', ruleForm.value);
-        ElMessage.success(msg);
 
-        userStore.$patch(data);
-        userStore.setToken(data.token);
+      request<UserResource>('POST', '/users/token', ruleForm.value)
+        .then(({ msg, data }) => {
+          ElMessage.success(msg);
 
-        router.replace('/');
-      }catch(e) {
-        console.error(e);
-        btnDisabled.value = false;
-      }
+          userStore.$patch(data);
+          userStore.setToken(data.token);
+
+          router.replace('/');
+        })
+        .catch(({ msg }) => {
+          ElMessage.error(msg);
+          btnDisabled.value = false;
+        });
     }
   });
 };
@@ -143,25 +147,25 @@ const submitForm = async (formEl) => {
 
 <style scoped lang="scss">
 .el-row {
-  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100vh;
 }
 
 .login-panel {
-  border: 1px solid var(--el-border-color);
-  box-shadow: var(--el-box-shadow-light);
   padding: 20px;
-  border-radius: 10px;
   background-color: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 10px;
+  box-shadow: var(--el-box-shadow-light);
 
   .login-title {
-    font-size: 22px;
-    text-align: center;
-    font-weight: bold;
     margin-top: 20px;
     margin-bottom: 30px;
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
   }
 
   .to-register {
