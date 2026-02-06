@@ -1,19 +1,30 @@
-<script setup>
+<script setup lang="ts">
+import type { EpisodesResource } from '@/types/episode';
+import type { CatchData } from '@/lib/js/api';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { request } from '@/lib/js/api';
+import { ArrowRight } from '@element-plus/icons-vue';
 import DPlayer from 'dplayer';
+import { ElMessageBox } from 'element-plus';
 
 const videoRef = ref(null);
 const route = useRoute();
 const episodeId = route.params.id;
-const episode = ref({});
+const episode = ref<EpisodesResource>();
 
 onMounted(async () => {
-  const episodeRes = await request('get', `/episodes/${episodeId}`);
-  episode.value = episodeRes.data;
+  try {
+    const episodeRes = await request<EpisodesResource>('GET', `/episodes/${episodeId}`);
+    episode.value = episodeRes.data;
+  }catch(e) {
+    const rd = e as CatchData;
+    ElMessageBox.alert(rd.msg, '温馨提示', {
+      confirmButtonText: '确认',
+    });
+  }
 
-  const dp = new DPlayer({
+  new DPlayer({
     container: videoRef.value,
     autoplay: true,
     screenshot: true,
@@ -26,20 +37,28 @@ onMounted(async () => {
 </script>
 
 <template>
-<div class="content">
-  <el-breadcrumb :separator-icon="ArrowRight">
-    <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-    <el-breadcrumb-item 
-      v-if="episode.course" 
-      :to="{path: '/courses/'+episode.course_id}"
+  <div class="content">
+    <el-breadcrumb
+      v-if="episode"
+      :separator-icon="ArrowRight"
     >
-      {{ episode.course.title }}
-    </el-breadcrumb-item>
-    <el-breadcrumb-item>{{ episode.title }}</el-breadcrumb-item>
-  </el-breadcrumb>
+      <el-breadcrumb-item :to="{ path: '/' }">
+        首页
+      </el-breadcrumb-item>
+      <el-breadcrumb-item 
+        v-if="episode.course" 
+        :to="{path: '/courses/'+episode.course_id}"
+      >
+        {{ episode.course.title }}
+      </el-breadcrumb-item>
+      <el-breadcrumb-item>{{ episode.title }}</el-breadcrumb-item>
+    </el-breadcrumb>
 
-  <div ref="videoRef" class="video"></div>
-</div>
+    <div
+      ref="videoRef"
+      class="video"
+    />
+  </div>
 </template>
 
 <style scoped lang="scss">

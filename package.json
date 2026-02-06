@@ -16,9 +16,24 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/dplayer": "^1.25.5",
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.8.1",
+    "eslint": "^9.39.2",
+    "eslint-plugin-vue": "^10.7.0",
+    "globals": "^17.3.0",
+    "jiti": "^2.6.1",
     "sass": "^1.97.2",
+    "stylelint": "^17.1.1",
+    "stylelint-config-recess-order": "^7.6.0",
+    "stylelint-config-recommended-vue": "^1.6.1",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-config-standard-scss": "^17.0.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0",
     "vite": "^7.2.4",
-    "vite-plugin-static-copy": "^3.1.4"
+    "vite-plugin-checker": "^0.12.0",
+    "vue-tsc": "^3.2.4"
   }
 }
