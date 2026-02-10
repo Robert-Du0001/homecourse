@@ -6,7 +6,11 @@ const userStore = useUserStore();
 const router = useRouter();
 
 function goToIndex() {
-  router.push({name: 'Index'});
+  router.push({ name: 'Index' });
+}
+
+function goToSetting() {
+  router.push({ name: 'Setting' });
 }
 
 function logout() {
@@ -21,7 +25,9 @@ function logout() {
         <el-row>
           <el-col
             class="link-index"
-            :span="6"
+            :xs="10"
+            :sm="6"
+            :lg="6"
             @click="goToIndex"
           >
             <el-image
@@ -31,11 +37,15 @@ function logout() {
             <span class="logo-txt">家庭学坊</span>
           </el-col>
           <el-col
-            :span="6"
-            :offset="12"
+            :xs="{span: 6, offset: 7}"
+            :sm="{span: 6, offset: 12}"
+            :lg="{span: 6, offset: 12}"
           >
             <el-row justify="end">
-              <el-col :span="6">
+              <el-col
+                :span="6"
+                :lg="{push: 3}"
+              >
                 <el-dropdown>
                   <div class="avatar">
                     <el-avatar
@@ -45,7 +55,13 @@ function logout() {
                   </div>
                   <template #dropdown>
                     <el-dropdown-menu>
-                      <el-dropdown-item @click="logout">
+                      <el-dropdown-item @click="goToSetting">
+                        设置
+                      </el-dropdown-item>
+                      <el-dropdown-item
+                        divided
+                        @click="logout"
+                      >
                         登出
                       </el-dropdown-item>
                     </el-dropdown-menu>
@@ -88,6 +104,7 @@ function logout() {
   .avatar {
     margin-top: 5px;
     text-align: right;
+    outline: none;
   }
 }
 </style>

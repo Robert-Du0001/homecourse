@@ -5,6 +5,7 @@
 !.env.example
 storage/framework
 
+tmp
 public
 homecourse
 

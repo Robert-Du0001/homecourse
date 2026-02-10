@@ -18,7 +18,7 @@ export type ApiResponse<T=null> = {
    * 响应内容
    */
   data: T;
-}
+};
 
 /**
  * 响应返回的报错数据
@@ -36,13 +36,13 @@ export type CatchData = {
    * 附带的数据
    */
   data?: object,
-}
+};
 
 /**
  * 封装 Fetch 请求
  */
 export async function request<T=null>(method: Method | 'DELETE', url: string, data?: object) {
-  return new Promise<ApiResponse<T> & {status: string}>((resolve, reject) => {
+  return new Promise<ApiResponse<T> & { status: string }>((resolve, reject) => {
     const loading = ElLoading.service({
       lock: true,
       text: '加载中',
@@ -64,7 +64,7 @@ export async function request<T=null>(method: Method | 'DELETE', url: string, da
       options.body = JSON.stringify(data);
     }
 
-    fetch('/api'+url, options).then(res => {
+    fetch('/api' + url, options).then(res => {
       if (res.status === 401) {
         userStore.logout();
         reject({
@@ -78,7 +78,7 @@ export async function request<T=null>(method: Method | 'DELETE', url: string, da
           const { msg, data } = resData;
 
           if (res.status === 200) {
-            resolve({status: 'ok', msg, data});
+            resolve({ status: 'ok', msg, data });
           }else {
             reject({
               status: res.status, 
@@ -88,12 +88,12 @@ export async function request<T=null>(method: Method | 'DELETE', url: string, da
           }
         }).catch(err => {
           console.error('解析json数据失败:', err);
-          reject({msg: '解析json数据失败'});
+          reject({ msg: '解析json数据失败' });
         });
       }
     }).catch(err => {
       console.error('发起请求失败:', err);
-      reject({msg: '发起请求失败'});
+      reject({ msg: '发起请求失败' });
     }).finally(() => {
       loading.close();
     });

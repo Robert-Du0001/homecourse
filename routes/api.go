@@ -2,8 +2,8 @@ package routes
 
 import (
 	"github.com/goravel/framework/contracts/route"
-	"github.com/goravel/framework/facades"
 
+	"homecourse/app/facades"
 	"homecourse/app/http/controllers"
 	"homecourse/app/http/middleware"
 )

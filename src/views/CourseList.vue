@@ -66,11 +66,13 @@ async function scan() {
         </div>
       </template>
     
-      <div class="content">
+      <div
+        class="content"
+        @click="goToDetail(course.id)"
+      >
         <img
           :src="course.cover_path || defaultBgs[course.id % 2]" 
           alt="封面"
-          @click="goToDetail(course.id)"
         >
         <div class="description">
           {{ course.description || '暂无课程描述...' }}
@@ -122,11 +124,11 @@ async function scan() {
       display: flex;
       flex: 1; // 关键：让内容区占据所有剩余空间，从而实现对齐
       flex-direction: column;
+      cursor: pointer;
 
       img {
         width: 100%;
         aspect-ratio: 16 / 9; // 强制图片比例统一，防止高度抖动
-        cursor: pointer;
         object-fit: cover;
       }
 

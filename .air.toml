@@ -1,12 +1,12 @@
 root = "."
-tmp_dir = "storage/temp"
+tmp_dir = "tmp"
 
 [build]
-  bin = "./storage/temp/main.exe"
-  cmd = "go build -o ./storage/temp/main.exe ."
+  bin = "./tmp/main.exe"
+  cmd = "go build -o ./tmp/main.exe ."
   delay = 1000
   exclude_dir = ["storage", "database", "node_modules", "src", "public"]
-  exclude_file = ["index.html", "package.json", "package-lock.json", "vite.config.js"]
+  exclude_file = ["index.html", "package.json", "package-lock.json", "vite.config.ts"]
   exclude_regex = []
   exclude_unchanged = false
   follow_symlink = false

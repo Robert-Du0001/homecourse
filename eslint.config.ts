@@ -2,6 +2,7 @@ import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
 import pluginVue from 'eslint-plugin-vue';
 import tseslint from 'typescript-eslint';
+import stylistic from '@stylistic/eslint-plugin';
 import globals from 'globals';
 
 export default defineConfig(
@@ -10,6 +11,10 @@ export default defineConfig(
   pluginVue.configs['flat/recommended'],
 
   {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+
     files: ['src/**/*.{ts,vue}', '*.ts'],
 
     languageOptions: {
@@ -25,17 +30,21 @@ export default defineConfig(
     },
 
     rules: {
-      'quotes': ['warn', 'single'], // 使用单引号
-      'comma-dangle': ['warn', 'always-multiline'], // 在多行后要加逗号
-      'semi': 'warn',
-      'indent': ['warn', 2],
-      'max-len': ['warn', { 'code': 180 }],
-
-      'no-console': ['error', {allow: ['error']}],
-      'no-unused-vars': 'error',
       'no-var': 'error', // 禁止使用 var
-      'eqeqeq': 'error',
-      'eol-last': 'error',
+      'no-eval': 'error',
+      'eqeqeq': 'error', // 必须使用全等
+      'no-console': ['error', { allow: ['error'] }],
+
+      '@stylistic/quotes': ['warn', 'single'], // 使用单引号
+      '@stylistic/comma-dangle': ['warn', 'always-multiline'], // 在多行后要加逗号
+      '@stylistic/comma-spacing': ['warn', { 'before': false, 'after': true }],
+      '@stylistic/comma-style': ['warn', 'last'],
+      '@stylistic/semi': 'warn',
+      '@stylistic/indent': ['warn', 2],
+      '@stylistic/max-len': ['warn', { 'code': 180 }],
+      '@stylistic/object-curly-spacing': ['warn', 'always'],
+      '@stylistic/space-infix-ops': 'warn',
+      '@stylistic/eol-last': 'warn',
 
       'vue/multi-word-component-names': 'off', // 组件名用两个及以上的单词（关闭检查）
     },
