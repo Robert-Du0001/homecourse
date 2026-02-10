@@ -2,16 +2,14 @@ package config
 
 import (
 	"github.com/goravel/framework/contracts/database/driver"
-	"github.com/goravel/framework/facades"
 	sqlitefacades "github.com/goravel/sqlite/facades"
+	"homecourse/app/facades"
 )
 
 func init() {
 	config := facades.Config()
 	config.Add("database", map[string]any{
-		// Default database connection name
-		"default": config.Env("DB_CONNECTION", "postgres"),
-
+		"default": "sqlite",
 		// Database connections
 		"connections": map[string]any{
 			"sqlite": map[string]any{
@@ -23,7 +21,6 @@ func init() {
 				},
 			},
 		},
-
 		// Pool configuration
 		"pool": map[string]any{
 			// Sets the maximum number of connections in the idle
@@ -57,11 +54,9 @@ func init() {
 			// Unit: Second
 			"conn_max_lifetime": 3600,
 		},
-
 		// Sets the threshold for slow queries in milliseconds, the slow query will be logged.
 		// Unit: Millisecond
 		"slow_threshold": 200,
-
 		// Migration Repository Table
 		//
 		// This table keeps track of all the migrations that have already run for

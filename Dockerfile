@@ -30,9 +30,10 @@ COPY --from=node-builder /node-build/public/ /www/public/
 
 COPY --from=builder /build/main /www/
 COPY --from=builder /build/storage/ /www/storage/
-COPY --from=builder /build/.env /www/.env
+COPY --from=builder /build/.env.example /www/.env
 
-COPY --from=builder /build/entrypoint.sh /www/entrypoint.sh
-RUN chmod +x /www/entrypoint.sh
+RUN /www/main artisan key:generate && \
+    /www/main artisan jwt:secret && \
+    /www/main artisan migrate
 
-ENTRYPOINT ["/www/entrypoint.sh"]
+ENTRYPOINT ["/www/main"]

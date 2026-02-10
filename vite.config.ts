@@ -11,13 +11,14 @@ export default defineConfig({
       typescript: true, // 检查 TS
       eslint: {
         lintCommand: 'eslint "./src/**/*.{ts,vue}"', // 检查 ESLint
+        useFlatConfig: true, // 使用最新版的eslint配置
       },
     }),
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
-    }
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   publicDir: './src/static',
   build: {
@@ -34,7 +35,7 @@ export default defineConfig({
       '/media': {
         target: 'http://localhost:3000',
         changeOrigin: true,
-      }
-    }
-  }
-})
+      },
+    },
+  },
+});

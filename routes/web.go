@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"homecourse/app/http/controllers"
-
 	"github.com/goravel/framework/contracts/http"
-	"github.com/goravel/framework/facades"
+
+	"homecourse/app/facades"
+	"homecourse/app/http/controllers"
 )
 
 func Web() {

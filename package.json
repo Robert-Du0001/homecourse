@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@stylistic/eslint-plugin": "^5.8.0",
     "@types/dplayer": "^1.25.5",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",

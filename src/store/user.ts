@@ -1,4 +1,5 @@
 import type { UserResource } from '@/types/user';
+import { UserRole } from '@/types/user';
 import { defineStore } from 'pinia';
 import router from '@/router';
 
@@ -6,6 +7,7 @@ export const useUserStore = defineStore('user', {
   state: (): UserResource => ({
     token: localStorage.getItem('token') || '',
     name: '', 
+    role: UserRole.GUEST,
   }),
   actions: {
     setToken(newToken: string) {
@@ -16,7 +18,7 @@ export const useUserStore = defineStore('user', {
       localStorage.removeItem('token');
       this.$reset();
       
-      router.replace({name: 'Login'});
+      router.replace({ name: 'Login' });
     },
   },
 });

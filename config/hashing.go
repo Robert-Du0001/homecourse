@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/goravel/framework/facades"
+	"homecourse/app/facades"
 )
 
 func init() {

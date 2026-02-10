@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/store/user';
+import { UserRole } from '@/types/user';
 
 const routes = [
   {
@@ -33,6 +34,18 @@ const routes = [
       },
     ],
   },
+  {
+    path: '/setting',
+    component: () => import('@/layout/SettingLayout.vue'), // 后台设置布局
+    meta: { requiresAdmin: true },
+    children: [
+      {
+        path: '', 
+        name: 'Setting',
+        component: () => import('@/views/setting/Index.vue'), 
+      },
+    ],
+  },
 ];
 
 // 创建路由实例
@@ -47,12 +60,17 @@ const router = createRouter({
 router.beforeEach((to) => {
   const userStore = useUserStore();
 
-  const { token } = storeToRefs(userStore);
+  const { token, role } = storeToRefs(userStore);
 
   if (!token.value && (to.name !== 'Register' && to.name !== 'Login')) {
-    return {name: 'Login'};
+    return { name: 'Login' };
   }else if (token.value && (to.name === 'Register' || to.name === 'Login')) {
-    return {name: 'Index'};
+    return { name: 'Index' };
+  }
+
+  const needsAdmin = to.matched.some(record => record.meta.requiresAdmin);
+  if (needsAdmin && role.value !== UserRole.ADMIN) {
+    return { name: 'Index' };
   }
   
   return true;
