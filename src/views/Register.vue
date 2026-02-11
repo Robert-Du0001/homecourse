@@ -13,7 +13,7 @@ onMounted(() => {
   // 相当于Element+规定的xs尺寸
   if (window.innerWidth < 768) {
     labelPosition.value = 'top';
-  }else {
+  } else {
     labelPosition.value = 'right';
   }
 
@@ -21,7 +21,7 @@ onMounted(() => {
     // 相当于Element+规定的xs尺寸
     if (window.innerWidth < 768) {
       labelPosition.value = 'top';
-    }else {
+    } else {
       labelPosition.value = 'right';
     }
   });
@@ -63,13 +63,15 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
       btnDisabled.value = true;
 
-      request('POST', '/users', ruleForm.value).then(({ msg }) => {
-        ElMessage.success(msg);
-        router.replace('/login');
-      }).catch(({ msg }) => {
-        ElMessage.error(msg);
-        btnDisabled.value = false;
-      });
+      request('POST', '/users', ruleForm.value)
+        .then(({ msg }) => {
+          ElMessage.success(msg);
+          router.replace('/login');
+        })
+        .catch(({ msg }) => {
+          ElMessage.error(msg);
+          btnDisabled.value = false;
+        });
     }
   });
 };
@@ -77,14 +79,8 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
 <template>
   <el-row>
-    <el-col
-      :xs="16"
-      :sm="12"
-      class="login-panel"
-    >
-      <div class="login-title">
-        欢迎注册家庭学坊账号
-      </div>
+    <el-col :xs="16" :sm="12" class="login-panel">
+      <div class="login-title">欢迎注册家庭学坊账号</div>
       <el-form
         ref="formRef"
         :model="ruleForm"
@@ -93,30 +89,21 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         :label-position="labelPosition"
         status-icon
       >
-        <el-form-item
-          label="账号"
-          prop="name"
-        >
+        <el-form-item label="账号" prop="name">
           <el-input
             v-model="ruleForm.name"
             type="text"
             placeholder="请输入您的账号"
           />
         </el-form-item>
-        <el-form-item
-          label="密码"
-          prop="password"
-        >
+        <el-form-item label="密码" prop="password">
           <el-input
             v-model="ruleForm.password"
             type="password"
             placeholder="请输入您的密码"
           />
         </el-form-item>
-        <el-form-item
-          label="确认密码"
-          prop="password"
-        >
+        <el-form-item label="确认密码" prop="password">
           <el-input
             v-model="ruleForm.password_confirm"
             type="password"
@@ -132,11 +119,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
           >
             注册
           </el-button>
-          <el-link
-            class="to-register"
-            type="info"
-            href="/login"
-          >
+          <el-link class="to-register" type="info" href="/login">
             已有账号？点击登录
           </el-link>
         </el-form-item>

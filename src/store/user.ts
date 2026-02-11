@@ -6,7 +6,7 @@ import router from '@/router';
 export const useUserStore = defineStore('user', {
   state: (): UserResource => ({
     token: localStorage.getItem('token') || '',
-    name: '', 
+    name: '',
     role: UserRole.GUEST,
   }),
   actions: {
@@ -17,7 +17,7 @@ export const useUserStore = defineStore('user', {
     logout() {
       localStorage.removeItem('token');
       this.$reset();
-      
+
       router.replace({ name: 'Login' });
     },
   },

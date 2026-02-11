@@ -3,18 +3,23 @@
 </template>
 
 <style scoped lang="scss">
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
   padding: 0;
   margin: 0;
   background-color: rgb(248 248 248);
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-li, ol {
+li,
+ol {
   list-style: none;
 }
 </style>

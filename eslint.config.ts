@@ -3,12 +3,13 @@ import js from '@eslint/js';
 import pluginVue from 'eslint-plugin-vue';
 import tseslint from 'typescript-eslint';
 import stylistic from '@stylistic/eslint-plugin';
+import eslintConfigPrettier from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default defineConfig(
   js.configs.recommended,
-  tseslint.configs.recommended,
-  pluginVue.configs['flat/recommended'],
+  ...tseslint.configs.recommended,
+  ...pluginVue.configs['flat/recommended'],
 
   {
     plugins: {
@@ -25,28 +26,23 @@ export default defineConfig(
       },
       globals: {
         ...globals.browser, // 允许使用 window, document 等
-        ...globals.node,     // 允许使用 process 等
+        ...globals.node, // 允许使用 process 等
       },
     },
 
     rules: {
       'no-var': 'error', // 禁止使用 var
       'no-eval': 'error',
-      'eqeqeq': 'error', // 必须使用全等
+      eqeqeq: 'error', // 必须使用全等
       'no-console': ['error', { allow: ['error'] }],
 
-      '@stylistic/quotes': ['warn', 'single'], // 使用单引号
-      '@stylistic/comma-dangle': ['warn', 'always-multiline'], // 在多行后要加逗号
-      '@stylistic/comma-spacing': ['warn', { 'before': false, 'after': true }],
-      '@stylistic/comma-style': ['warn', 'last'],
-      '@stylistic/semi': 'warn',
-      '@stylistic/indent': ['warn', 2],
-      '@stylistic/max-len': ['warn', { 'code': 180 }],
-      '@stylistic/object-curly-spacing': ['warn', 'always'],
-      '@stylistic/space-infix-ops': 'warn',
-      '@stylistic/eol-last': 'warn',
+      '@stylistic/spaced-comment': 'warn',
+      '@stylistic/member-delimiter-style': 'warn',
+      '@stylistic/lines-between-class-members': 'warn',
 
       'vue/multi-word-component-names': 'off', // 组件名用两个及以上的单词（关闭检查）
     },
   },
+
+  eslintConfigPrettier,
 );

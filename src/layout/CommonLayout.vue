@@ -30,38 +30,26 @@ function logout() {
             :lg="6"
             @click="goToIndex"
           >
-            <el-image
-              class="logo"
-              src="/favicon.svg"
-            />
+            <el-image class="logo" src="/favicon.svg" />
             <span class="logo-txt">家庭学坊</span>
           </el-col>
           <el-col
-            :xs="{span: 6, offset: 7}"
-            :sm="{span: 6, offset: 12}"
-            :lg="{span: 6, offset: 12}"
+            :xs="{ span: 6, offset: 7 }"
+            :sm="{ span: 6, offset: 12 }"
+            :lg="{ span: 6, offset: 12 }"
           >
             <el-row justify="end">
-              <el-col
-                :span="6"
-                :lg="{push: 3}"
-              >
+              <el-col :span="6" :lg="{ push: 3 }">
                 <el-dropdown>
                   <div class="avatar">
-                    <el-avatar
-                      :size="50"
-                      src="/img/avatar.png"
-                    />
+                    <el-avatar :size="50" src="/img/avatar.png" />
                   </div>
                   <template #dropdown>
                     <el-dropdown-menu>
                       <el-dropdown-item @click="goToSetting">
                         设置
                       </el-dropdown-item>
-                      <el-dropdown-item
-                        divided
-                        @click="logout"
-                      >
+                      <el-dropdown-item divided @click="logout">
                         登出
                       </el-dropdown-item>
                     </el-dropdown-menu>
@@ -88,7 +76,7 @@ function logout() {
     cursor: pointer;
 
     .logo {
-      width: 50px; 
+      width: 50px;
       height: 50px;
       margin-top: 6px;
     }

@@ -2,6 +2,8 @@
 	"recommendations": [
     "golang.go",
 		"Vue.volar",
-		"stylelint.vscode-stylelint"
+		"stylelint.vscode-stylelint",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode"
 	],
 }

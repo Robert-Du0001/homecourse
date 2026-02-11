@@ -5,21 +5,21 @@ export type CourseResource = {
   /**
    * 课程ID
    */
-  id: number,
+  id: number;
   /**
    * 课程标题
    */
-  title: string,
+  title: string;
   /**
    * 简介
    */
-  description: string,
+  description: string;
   /**
    * 封面路径
    */
-  cover_path: string,
+  cover_path: string;
   /**
    * 创建日期
    */
-  created_at: string,
+  created_at: string;
 };

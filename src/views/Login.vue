@@ -16,7 +16,7 @@ onMounted(() => {
   // 相当于Element+规定的xs尺寸
   if (window.innerWidth < 768) {
     labelPosition.value = 'top';
-  }else {
+  } else {
     labelPosition.value = 'right';
   }
 
@@ -24,7 +24,7 @@ onMounted(() => {
     // 相当于Element+规定的xs尺寸
     if (window.innerWidth < 768) {
       labelPosition.value = 'top';
-    }else {
+    } else {
       labelPosition.value = 'right';
     }
   });
@@ -77,14 +77,8 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
 <template>
   <el-row>
-    <el-col
-      :xs="16"
-      :sm="12"
-      class="login-panel"
-    >
-      <div class="login-title">
-        欢迎登录家庭学坊
-      </div>
+    <el-col :xs="16" :sm="12" class="login-panel">
+      <div class="login-title">欢迎登录家庭学坊</div>
       <el-form
         ref="formRef"
         :model="ruleForm"
@@ -93,20 +87,14 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         :label-position="labelPosition"
         status-icon
       >
-        <el-form-item
-          label="账号"
-          prop="name"
-        >
+        <el-form-item label="账号" prop="name">
           <el-input
             v-model="ruleForm.name"
             type="text"
             placeholder="请输入您的账号"
           />
         </el-form-item>
-        <el-form-item
-          label="密码"
-          prop="password"
-        >
+        <el-form-item label="密码" prop="password">
           <el-input
             v-model="ruleForm.password"
             type="password"
@@ -132,11 +120,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
           >
             登录
           </el-button>
-          <el-link
-            class="to-register"
-            type="info"
-            href="/register"
-          >
+          <el-link class="to-register" type="info" href="/register">
             没有账号？点击注册
           </el-link>
         </el-form-item>

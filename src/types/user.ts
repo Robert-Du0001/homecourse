@@ -15,13 +15,13 @@ export type UserResource = {
   /**
    * 用户名
    */
-  name: string,
+  name: string;
   /**
    * 角色
    */
-  role: UserRole,
+  role: UserRole;
   /**
    * JWT登录凭证
    */
-  token: string,
+  token: string;
 };

@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { HomeFilled, Avatar, Management, Expand, Fold } from '@element-plus/icons-vue';
+import {
+  HomeFilled,
+  Avatar,
+  Management,
+  Expand,
+  Fold,
+} from '@element-plus/icons-vue';
 
 // 控制展开状态，false 为展开，true 为收缩
 const isCollapse = ref(false);
-
-// 切换折叠状态的方法
-// const toggleCollapse = () => {
-//   isCollapse.value = !isCollapse.value;
-// };
 </script>
 
 <template>
@@ -18,29 +19,10 @@ const isCollapse = ref(false);
       <el-container>
         <el-aside :class="['admin-aside', isCollapse ? 'is-collapsed' : '']">
           <el-scrollbar>
-            <el-menu
-              class="admin-menu"
-              :collapse="isCollapse"
-            >
-              <!-- <el-menu-item
-                index="-1"
-                class="toggle-btn"
-                @click="toggleCollapse"
-              >
-                <el-icon>
-                  <Expand v-if="isCollapse" />
-                  <Fold v-else />
-                </el-icon>
-                <template #title>
-                  收起菜单
-                </template>
-              </el-menu-item> -->
-
+            <el-menu class="admin-menu" :collapse="isCollapse">
               <el-menu-item index="0">
                 <el-icon><HomeFilled /></el-icon>
-                <template #title>
-                  总览
-                </template>
+                <template #title>总览</template>
               </el-menu-item>
               <el-sub-menu index="1">
                 <template #title>
@@ -48,9 +30,7 @@ const isCollapse = ref(false);
                   <span>用户管理</span>
                 </template>
                 <el-menu-item-group>
-                  <el-menu-item index="1-1">
-                    用户列表
-                  </el-menu-item>
+                  <el-menu-item index="1-1">用户列表</el-menu-item>
                 </el-menu-item-group>
               </el-sub-menu>
               <el-sub-menu index="2">
@@ -59,21 +39,13 @@ const isCollapse = ref(false);
                   <span>课程管理</span>
                 </template>
                 <el-menu-item-group>
-                  <el-menu-item index="2-1">
-                    课程列表
-                  </el-menu-item>
+                  <el-menu-item index="2-1">课程列表</el-menu-item>
                 </el-menu-item-group>
               </el-sub-menu>
-              <!-- <el-menu-item>
-                <el-icon><Expand /></el-icon>
-              </el-menu-item> -->
             </el-menu>
           </el-scrollbar>
 
-          <div
-            class="collapse-trigger"
-            @click="isCollapse = !isCollapse"
-          >
+          <div class="collapse-trigger" @click="isCollapse = !isCollapse">
             <el-icon :size="20">
               <Expand v-if="isCollapse" />
               <Fold v-else />
@@ -103,7 +75,7 @@ const isCollapse = ref(false);
 
   .admin-menu {
     border-right: none; // 去掉菜单默认边框
-    
+
     // 解决折叠时文字闪烁的细节
     &:not(.el-menu--collapse) {
       width: 200px;

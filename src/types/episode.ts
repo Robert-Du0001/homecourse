@@ -7,19 +7,19 @@ export type EpisodesResource = {
   /**
    * 剧集ID
    */
-  id: number,
+  id: number;
   /**
    * 剧集标题
    */
-  title: string,
+  title: string;
   /**
    * 所属的课程ID
    */
-  course_id: number,
+  course_id: number;
   /**
    * 所属的课程
    */
-  course: CourseResource
+  course: CourseResource;
 };
 
 /**
@@ -29,9 +29,9 @@ export type EpisodesItemResource = {
   /**
    * 剧集ID
    */
-  id: number,
+  id: number;
   /**
    * 剧集标题
    */
-  title: string,
+  title: string;
 };

@@ -9,12 +9,12 @@ import { ElMessageBox } from 'element-plus';
 
 const routes = [
   {
-    path: '/login', 
+    path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue'), 
+    component: () => import('@/views/Login.vue'),
   },
   {
-    path: '/register', 
+    path: '/register',
     name: 'Register',
     component: () => import('@/views/Register.vue'),
   },
@@ -22,14 +22,14 @@ const routes = [
     path: '/',
     component: () => import('@/layout/CommonLayout.vue'), // 通用布局
     children: [
-      { 
-        path: '', 
+      {
+        path: '',
         name: 'Index',
-        component: () => import('@/views/CourseList.vue'), 
+        component: () => import('@/views/CourseList.vue'),
       },
-      { 
-        path: '/courses/:id', 
-        name: 'CourseDetail', 
+      {
+        path: '/courses/:id',
+        name: 'CourseDetail',
         component: () => import('@/views/CourseDetail.vue'),
       },
       {
@@ -44,9 +44,9 @@ const routes = [
     meta: { requiresAdmin: true },
     children: [
       {
-        path: '', 
+        path: '',
         name: 'Setting',
-        component: () => import('@/views/setting/Index.vue'), 
+        component: () => import('@/views/setting/Index.vue'),
       },
     ],
   },
@@ -57,7 +57,9 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   // 滚动行为，跳转后页面自动滚回顶部
-  scrollBehavior() { return { top: 0 }; },
+  scrollBehavior() {
+    return { top: 0 };
+  },
 });
 
 // 拦截器
@@ -66,9 +68,9 @@ router.beforeEach(async (to) => {
 
   const { token, role } = storeToRefs(userStore);
 
-  if (!token.value && (to.name !== 'Register' && to.name !== 'Login')) {
+  if (!token.value && to.name !== 'Register' && to.name !== 'Login') {
     return { name: 'Login' };
-  }else if (token.value && (to.name === 'Register' || to.name === 'Login')) {
+  } else if (token.value && (to.name === 'Register' || to.name === 'Login')) {
     return { name: 'Index' };
   }
 
@@ -86,11 +88,11 @@ router.beforeEach(async (to) => {
     }
   }
 
-  const needsAdmin = to.matched.some(record => record.meta.requiresAdmin);
+  const needsAdmin = to.matched.some((record) => record.meta.requiresAdmin);
   if (needsAdmin && role.value !== UserRole.ADMIN) {
     return { name: 'Index' };
   }
-  
+
   return true;
 });
 

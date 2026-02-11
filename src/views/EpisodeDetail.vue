@@ -15,9 +15,12 @@ const episode = ref<EpisodesResource>();
 
 onMounted(async () => {
   try {
-    const episodeRes = await request<EpisodesResource>('GET', `/episodes/${episodeId}`);
+    const episodeRes = await request<EpisodesResource>(
+      'GET',
+      `/episodes/${episodeId}`,
+    );
     episode.value = episodeRes.data;
-  }catch(e) {
+  } catch (e) {
     const rd = e as CatchData;
     ElMessageBox.alert(rd.msg, '温馨提示', {
       confirmButtonText: '确认',
@@ -38,26 +41,18 @@ onMounted(async () => {
 
 <template>
   <div class="content">
-    <el-breadcrumb
-      v-if="episode"
-      :separator-icon="ArrowRight"
-    >
-      <el-breadcrumb-item :to="{ path: '/' }">
-        首页
-      </el-breadcrumb-item>
-      <el-breadcrumb-item 
-        v-if="episode.course" 
-        :to="{path: '/courses/'+episode.course_id}"
+    <el-breadcrumb v-if="episode" :separator-icon="ArrowRight">
+      <el-breadcrumb-item :to="{ path: '/' }"> 首页 </el-breadcrumb-item>
+      <el-breadcrumb-item
+        v-if="episode.course"
+        :to="{ path: '/courses/' + episode.course_id }"
       >
         {{ episode.course.title }}
       </el-breadcrumb-item>
       <el-breadcrumb-item>{{ episode.title }}</el-breadcrumb-item>
     </el-breadcrumb>
 
-    <div
-      ref="videoRef"
-      class="video"
-    />
+    <div ref="videoRef" class="video" />
   </div>
 </template>
 
@@ -72,5 +67,4 @@ onMounted(async () => {
     margin: 20px auto;
   }
 }
-
 </style>
