@@ -66,6 +66,14 @@ func (r *UserController) Store(ctx http.Context) http.Response {
 	}
 	user.Password = password
 
+	// 判断是否为第一个用户，第一个用户自动会成为管理员
+	if exists, err := facades.Orm().Query().Model(&models.User{}).Exists(); err != nil {
+		return response.InternalServerError(ctx, "E6", err)
+	} else if !exists {
+		// 不存在数据，则设置为管理员
+		user.Role = models.RoleAdmin
+	}
+
 	if err := facades.Orm().Query().Create(&user); err != nil {
 		return response.InternalServerError(ctx, "E5", err)
 	}
@@ -100,13 +108,16 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 
 	type userInfo struct {
 		ID       uint
+		Role     models.UserRole
 		Password string
 	}
 	var user userInfo
 
 	// 根据用户名查询用户
 	if err := facades.Orm().Query().Model(&models.User{}).
-		Select("id, password").Where("name", visitor.Name).FirstOrFail(&user); err != nil {
+		Select("id, password, role").
+		Where("name", visitor.Name).
+		FirstOrFail(&user); err != nil {
 		if errors.Is(err, errors.OrmRecordNotFound) {
 			return response.BadRequest(ctx, "用户不存在", nil)
 		}
@@ -127,6 +138,7 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 	return response.Ok(ctx, "登录成功", map[string]any{
 		"id":    user.ID,
 		"name":  visitor.Name,
+		"role":  user.Role,
 		"token": token,
 	})
 }

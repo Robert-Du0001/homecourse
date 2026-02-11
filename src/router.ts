@@ -1,7 +1,11 @@
+import type { UserResource } from '@/types/user';
+import type { CatchData } from '@/lib/js/api';
 import { createRouter, createWebHistory } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/store/user';
 import { UserRole } from '@/types/user';
+import { request } from '@/lib/js/api';
+import { ElMessageBox } from 'element-plus';
 
 const routes = [
   {
@@ -57,7 +61,7 @@ const router = createRouter({
 });
 
 // 拦截器
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const userStore = useUserStore();
 
   const { token, role } = storeToRefs(userStore);
@@ -66,6 +70,20 @@ router.beforeEach((to) => {
     return { name: 'Login' };
   }else if (token.value && (to.name === 'Register' || to.name === 'Login')) {
     return { name: 'Index' };
+  }
+
+  if (to.name === 'Index') {
+    if (!userStore.name) {
+      try {
+        const resData = await request<UserResource>('GET', '/users');
+        userStore.$patch(resData.data);
+      } catch (e) {
+        const rd = e as CatchData;
+        ElMessageBox.alert(rd.msg, '温馨提示', {
+          confirmButtonText: '确认',
+        });
+      }
+    }
   }
 
   const needsAdmin = to.matched.some(record => record.meta.requiresAdmin);
