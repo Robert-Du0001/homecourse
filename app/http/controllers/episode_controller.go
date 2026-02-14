@@ -144,13 +144,13 @@ func (r *EpisodeController) Scan(ctx http.Context) http.Response {
 		courseMap[c.Title] = c.ID
 	}
 
-	userID := ctx.Value(models.UserID).(uint)
+	cuser := ctx.Value(models.Cuser).(models.User)
 
 	// 找出需要新创建的课程
 	var newCourses []models.Course
 	for _, name := range scannedCourseNames {
 		if _, exists := courseMap[name]; !exists {
-			newCourses = append(newCourses, models.Course{UserID: userID, Title: name})
+			newCourses = append(newCourses, models.Course{UserID: cuser.ID, Title: name})
 		}
 	}
 
@@ -188,7 +188,7 @@ func (r *EpisodeController) Scan(ctx http.Context) http.Response {
 	for _, se := range scannedEpisodes {
 		if _, exists := existingPathMap[se.FilePath]; !exists {
 			finalEpisodes = append(finalEpisodes, models.Episode{
-				UserID:   userID,
+				UserID:   cuser.ID,
 				CourseID: courseMap[se.CourseName],
 				Title:    se.Title,
 				FilePath: se.FilePath,

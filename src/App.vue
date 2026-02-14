@@ -2,7 +2,7 @@
   <router-view />
 </template>
 
-<style scoped lang="scss">
+<style lang="scss">
 html,
 body,
 #app {

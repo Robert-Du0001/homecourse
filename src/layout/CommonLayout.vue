@@ -69,6 +69,7 @@ function logout() {
 
 <style scoped lang="scss">
 .header {
+  background-color: rgb(255 255 255);
   border-bottom: 1px solid var(--el-border-color);
   box-shadow: 2px 2px 12px 0 rgb(0 0 0 / 10%);
 

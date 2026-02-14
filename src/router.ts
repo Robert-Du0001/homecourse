@@ -48,6 +48,16 @@ const routes = [
         name: 'Setting',
         component: () => import('@/views/setting/Index.vue'),
       },
+      {
+        path: '/setting/users',
+        name: 'SettingUserList',
+        component: () => import('@/views/setting/UserList.vue'),
+      },
+      {
+        path: '/setting/courses',
+        name: 'SettingCourseList',
+        component: () => import('@/views/setting/CourseList.vue'),
+      },
     ],
   },
 ];
@@ -77,7 +87,7 @@ router.beforeEach(async (to) => {
   if (to.name === 'Index') {
     if (!userStore.name) {
       try {
-        const resData = await request<UserResource>('GET', '/users');
+        const resData = await request<UserResource>('GET', '/user');
         userStore.$patch(resData.data);
       } catch (e) {
         const rd = e as CatchData;

@@ -63,7 +63,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
       btnDisabled.value = true;
 
-      request('POST', '/users', ruleForm.value)
+      request('POST', '/user', ruleForm.value)
         .then(({ msg }) => {
           ElMessage.success(msg);
           router.replace('/login');

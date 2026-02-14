@@ -57,7 +57,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     if (valid) {
       btnDisabled.value = true;
 
-      request<UserResource>('POST', '/users/token', ruleForm.value)
+      request<UserResource>('POST', '/user/token', ruleForm.value)
         .then(({ msg, data }) => {
           ElMessage.success(msg);
 

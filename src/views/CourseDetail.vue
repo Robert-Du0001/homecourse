@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CourseResource } from '@/types/course';
 import type { EpisodesItemResource } from '@/types/episode';
+import type { CatchData } from '@/lib/js/api';
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { request } from '@/lib/js/api';
@@ -15,22 +16,22 @@ const course = ref<CourseResource>();
 const episodes = ref<EpisodesItemResource[]>([]);
 
 onMounted(async function () {
-  request<CourseResource>('GET', `/courses/${courseId}`)
-    .then(({ data }) => {
-      course.value = data;
-    })
-    .catch(({ msg }) => {
-      ElMessage.error(msg);
-    });
+  try {
+    const { data: courseData } = await request<CourseResource>(
+      'GET',
+      `/courses/${courseId}`,
+    );
+    course.value = courseData;
 
-  // 根据 ID 请求后端的 episodes 接口
-  request<EpisodesItemResource[]>('GET', `/episodes?course_id=${courseId}`)
-    .then(({ data }) => {
-      episodes.value = data;
-    })
-    .catch(({ msg }) => {
-      ElMessage.error(msg);
-    });
+    const { data: episodesData } = await request<EpisodesItemResource[]>(
+      'GET',
+      `/episodes?course_id=${courseId}`,
+    );
+    episodes.value = episodesData;
+  } catch (e) {
+    const { msg } = e as CatchData;
+    ElMessage.error(msg);
+  }
 });
 </script>
 

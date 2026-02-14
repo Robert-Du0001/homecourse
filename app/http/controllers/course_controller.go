@@ -24,7 +24,7 @@ func NewCourseController() *CourseController {
 // 获取课程列表
 func (r *CourseController) Index(ctx http.Context) http.Response {
 	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
-		"category_id": "int",
+		"category_id": "int:-1",
 	}, validation.Filters(map[string]string{
 		"category_id": "int",
 	}))

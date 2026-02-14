@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import {
   HomeFilled,
   Avatar,
@@ -10,17 +11,40 @@ import {
 
 // 控制展开状态，false 为展开，true 为收缩
 const isCollapse = ref(false);
+const router = useRouter();
+
+function goToIndex() {
+  router.push({ name: 'Index' });
+}
 </script>
 
 <template>
   <div class="setting-layout">
     <el-container>
-      <el-header>Header</el-header>
+      <el-header class="admin-header">
+        <el-row>
+          <el-col
+            class="link-index"
+            :xs="18"
+            :sm="8"
+            :lg="6"
+            @click="goToIndex"
+          >
+            <el-image class="logo" src="/favicon.svg" />
+            <span class="logo-txt">家庭学坊后台管理</span>
+          </el-col>
+        </el-row>
+      </el-header>
       <el-container>
         <el-aside :class="['admin-aside', isCollapse ? 'is-collapsed' : '']">
           <el-scrollbar>
-            <el-menu class="admin-menu" :collapse="isCollapse">
-              <el-menu-item index="0">
+            <el-menu
+              class="admin-menu"
+              default-active="setting"
+              :collapse="isCollapse"
+              :router="true"
+            >
+              <el-menu-item index="/setting">
                 <el-icon><HomeFilled /></el-icon>
                 <template #title>总览</template>
               </el-menu-item>
@@ -30,7 +54,7 @@ const isCollapse = ref(false);
                   <span>用户管理</span>
                 </template>
                 <el-menu-item-group>
-                  <el-menu-item index="1-1">用户列表</el-menu-item>
+                  <el-menu-item index="/setting/users">用户列表</el-menu-item>
                 </el-menu-item-group>
               </el-sub-menu>
               <el-sub-menu index="2">
@@ -39,7 +63,7 @@ const isCollapse = ref(false);
                   <span>课程管理</span>
                 </template>
                 <el-menu-item-group>
-                  <el-menu-item index="2-1">课程列表</el-menu-item>
+                  <el-menu-item index="/setting/courses">课程列表</el-menu-item>
                 </el-menu-item-group>
               </el-sub-menu>
             </el-menu>
@@ -60,8 +84,25 @@ const isCollapse = ref(false);
 
 <style scoped lang="scss">
 .admin-header {
-  line-height: 60px;
+  background-color: rgb(255 255 255);
   border-bottom: 1px solid var(--el-border-color-light);
+
+  .link-index {
+    cursor: pointer;
+
+    .logo {
+      width: 50px;
+      height: 50px;
+      margin-top: 6px;
+    }
+
+    .logo-txt {
+      margin-left: 6px;
+      font-size: 24px;
+      font-weight: bold;
+      vertical-align: 15px;
+    }
+  }
 }
 
 .admin-aside {
@@ -75,11 +116,6 @@ const isCollapse = ref(false);
 
   .admin-menu {
     border-right: none; // 去掉菜单默认边框
-
-    // 解决折叠时文字闪烁的细节
-    &:not(.el-menu--collapse) {
-      width: 200px;
-    }
   }
 
   .collapse-trigger {

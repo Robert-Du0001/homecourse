@@ -4,8 +4,8 @@ import (
 	"github.com/goravel/framework/database/orm"
 )
 
-// userid的上下文名
-const UserID = "uid"
+// 上下文user
+const Cuser = "cuser"
 
 // 用户角色
 type UserRole uint8

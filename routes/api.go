@@ -15,11 +15,11 @@ func Api() {
 	episodeController := controllers.NewEpisodeController()
 
 	facades.Route().Prefix("api").Group(func(router route.Router) {
-		router.Post("/users", userController.Store)
-		router.Post("/users/token", userController.Login)
+		router.Post("/user", userController.Store)
+		router.Post("/user/token", userController.Login)
 
 		router.Middleware(middleware.Auth()).Group(func(router route.Router) {
-			router.Get("/users", userController.Show)
+			router.Get("/user", userController.Show)
 
 			// 课程分类相关路由
 			router.Get("/categories", categoryController.Index)
@@ -32,6 +32,11 @@ func Api() {
 			router.Get("/episodes", episodeController.Index)
 			router.Get("/episodes/{id}", episodeController.Show)
 			router.Put("/episodes/scan", episodeController.Scan)
+
+			// 管理员
+			router.Middleware(middleware.Admin()).Group(func(router route.Router) {
+				router.Get("/users", userController.Index)
+			})
 		})
 	})
 }

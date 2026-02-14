@@ -21,11 +21,11 @@ func NewUserController() *UserController {
 
 // 获取用户信息
 func (r *UserController) Show(ctx http.Context) http.Response {
-	userID := ctx.Value(models.UserID)
+	cuser := ctx.Value(models.Cuser).(models.User)
 
 	var user models.User
 
-	if err := facades.Orm().Query().Find(&user, userID); err != nil {
+	if err := facades.Orm().Query().Find(&user, cuser.ID); err != nil {
 		return response.InternalServerError(ctx, "E1", err)
 	}
 
@@ -140,5 +140,48 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		"name":  visitor.Name,
 		"role":  user.Role,
 		"token": token,
+	})
+}
+
+// 获取用户列表 - 管理员
+func (r *UserController) Index(ctx http.Context) http.Response {
+	validator, err := ctx.Request().Validate(map[string]string{
+		"page":  "required|uint",
+		"limit": "required|uint",
+	})
+
+	if err != nil {
+		return response.InternalServerError(ctx, "E1", err)
+	}
+
+	if validator.Fails() {
+		return response.BadRequest(ctx, "参数错误", validator.Errors().All())
+	}
+
+	type req struct {
+		Page  int `form:"page"`
+		Limit int `form:"limit"`
+	}
+	var request req
+
+	if err := validator.Bind(&request); err != nil {
+		return response.InternalServerError(ctx, "E2", err)
+	}
+
+	var users []models.User
+	var total int64
+
+	if err := facades.Orm().Query().Paginate(
+		request.Page,
+		request.Limit,
+		&users,
+		&total,
+	); err != nil {
+		return response.InternalServerError(ctx, "E3", err)
+	}
+
+	return response.Ok(ctx, "获取成功", map[string]any{
+		"users": users,
+		"total": total,
 	})
 }
