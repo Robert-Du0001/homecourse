@@ -185,3 +185,16 @@ func (r *UserController) Index(ctx http.Context) http.Response {
 		"total": total,
 	})
 }
+
+// 删除用户 - 管理员
+func (r *UserController) Destroy(ctx http.Context) http.Response {
+	delUserID := ctx.Request().Route("id")
+
+	if _, err := facades.Orm().Query().Model(&models.User{}).
+		Where("id", delUserID).
+		Delete(); err != nil {
+		return response.InternalServerError(ctx, "E1", err)
+	}
+
+	return response.Ok(ctx, "删除成功", nil)
+}

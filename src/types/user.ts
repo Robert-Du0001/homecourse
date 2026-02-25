@@ -13,6 +13,10 @@ export enum UserRole {
  */
 export type UserResource = {
   /**
+   * 用户ID
+   */
+  id: number;
+  /**
    * 用户名
    */
   name: string;

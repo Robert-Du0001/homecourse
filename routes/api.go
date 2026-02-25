@@ -36,6 +36,7 @@ func Api() {
 			// 管理员
 			router.Middleware(middleware.Admin()).Group(func(router route.Router) {
 				router.Get("/users", userController.Index)
+				router.Delete("/users/{id}", userController.Destroy)
 			})
 		})
 	})

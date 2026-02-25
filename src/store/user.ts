@@ -5,6 +5,7 @@ import router from '@/router';
 
 export const useUserStore = defineStore('user', {
   state: (): UserResource => ({
+    id: 0,
     token: localStorage.getItem('token') || '',
     name: '',
     role: UserRole.GUEST,
