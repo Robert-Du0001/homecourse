@@ -4,11 +4,6 @@ import { defineConfig } from 'eslint/config';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 import pluginVue from 'eslint-plugin-vue';
-<<<<<<< HEAD
-=======
-import tseslint from 'typescript-eslint';
-import stylistic from '@stylistic/eslint-plugin';
->>>>>>> main
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -20,10 +15,7 @@ export default defineConfig(
   {
     plugins: {
       '@stylistic': stylistic,
-<<<<<<< HEAD
       import: importPlugin,
-=======
->>>>>>> main
     },
 
     files: ['src/**/*.{ts,vue}', '*.ts'],
@@ -43,7 +35,6 @@ export default defineConfig(
     rules: {
       'no-var': 'error', // 禁止使用 var
       'no-eval': 'error',
-<<<<<<< HEAD
       eqeqeq: 'error', // 必须使用全等
       'no-console': [
         process.env.NODE_ENV === 'production' ? 'error' : 'warn',
@@ -53,21 +44,6 @@ export default defineConfig(
       '@stylistic/spaced-comment': 'warn',
       '@stylistic/member-delimiter-style': 'warn',
       '@stylistic/lines-between-class-members': 'warn',
-=======
-      'eqeqeq': 'error', // 必须使用全等
-      'no-console': ['error', { allow: ['error'] }],
-
-      '@stylistic/quotes': ['warn', 'single'], // 使用单引号
-      '@stylistic/comma-dangle': ['warn', 'always-multiline'], // 在多行后要加逗号
-      '@stylistic/comma-spacing': ['warn', { 'before': false, 'after': true }],
-      '@stylistic/comma-style': ['warn', 'last'],
-      '@stylistic/semi': 'warn',
-      '@stylistic/indent': ['warn', 2],
-      '@stylistic/max-len': ['warn', { 'code': 180 }],
-      '@stylistic/object-curly-spacing': ['warn', 'always'],
-      '@stylistic/space-infix-ops': 'warn',
-      '@stylistic/eol-last': 'warn',
->>>>>>> main
 
       'vue/multi-word-component-names': 'off', // 组件名用两个及以上的单词（关闭检查）
 

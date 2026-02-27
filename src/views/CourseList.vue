@@ -58,24 +58,12 @@ async function scan() {
           <b style="font-size: 16px">{{ course.title }}</b>
         </div>
       </template>
-<<<<<<< HEAD
 
       <div class="content" @click="goToDetail(course.id)">
-=======
-    
-      <div
-        class="content"
-        @click="goToDetail(course.id)"
-      >
->>>>>>> main
         <img
           :src="course.cover_path || getDefaultBgImg(course.id)"
           alt="封面"
-<<<<<<< HEAD
         />
-=======
-        >
->>>>>>> main
         <div class="description">
           {{ course.description || '暂无课程描述...' }}
         </div>

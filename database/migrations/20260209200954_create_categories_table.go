@@ -17,18 +17,10 @@ func (r *M20260209200954CreateCategoriesTable) Signature() string {
 func (r *M20260209200954CreateCategoriesTable) Up() error {
 	if !facades.Schema().HasTable("categories") {
 		return facades.Schema().Create("categories", func(table schema.Blueprint) {
-<<<<<<< HEAD
 			table.ID()                       // 自增 ID
 			table.String("name")             // 分类名称 (如: 计算机科学)
 			table.Boolean("is_default")      // 是否为默认分类（文件会默认扫描到此分类中）
 			table.Integer("sort").Default(0) // 排序
-=======
-			table.ID()                               // 自增 ID
-			table.BigInteger("user_id")              // 创建者 ID
-			table.String("name")                     // 分类名称 (如: 计算机科学)
-			table.BigInteger("parent_id").Default(0) // 父分类 ID (默认为 0，方便做二级分类)
-			table.Integer("sort").Default(0)         // 排序
->>>>>>> main
 			table.TimestampsTz()
 		})
 	}
