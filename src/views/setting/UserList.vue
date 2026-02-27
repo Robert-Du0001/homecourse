@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { UserResource } from '@/types/user';
-import type { CatchData } from '@/lib/js/api';
-import { request } from '@/lib/js/api';
-import { onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
+import { onMounted, ref } from 'vue';
+
+import type { CatchData } from '@/lib/js/api';
+import type { UserResource } from '@/types/user';
+
+import { request } from '@/lib/js/api';
 
 const users = ref<UserResource[]>();
 
@@ -14,7 +16,7 @@ async function loadUsers() {
   try {
     const { data } = await request<{ users: UserResource[]; total: number }>(
       'GET',
-      `/users?page=1&limit=10`,
+      `/admin/users?page=1&limit=10`,
     );
     users.value = data.users;
   } catch (e) {
@@ -28,7 +30,7 @@ async function loadUsers() {
  * @param id 删除用户的ID
  */
 function delUser(id: number) {
-  request('DELETE', `/users/${id}`)
+  request('DELETE', `/admin/users/${id}`)
     .then(async ({ msg }) => {
       ElMessage.success(msg);
 

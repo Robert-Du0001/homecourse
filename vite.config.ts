@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
 import path from 'path';
+
+import vue from '@vitejs/plugin-vue';
+import { defineConfig } from 'vite';
 import checker from 'vite-plugin-checker';
 
 // https://vite.dev/config/
@@ -21,6 +22,11 @@ export default defineConfig({
     },
   },
   publicDir: './src/static',
+  esbuild: {
+    // 生产环境打包时移除 console.log 和 debugger
+    pure: ['console.log', 'console.info', 'console.debug'],
+    drop: ['debugger'],
+  },
   build: {
     outDir: './public', // 确保指向 Goravel 的 public
     emptyOutDir: true,

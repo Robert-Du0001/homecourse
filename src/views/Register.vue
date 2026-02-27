@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { FormInstance, FormRules } from 'element-plus';
-import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
-import { request } from '@/lib/js/api';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+
+import type { FormInstance, FormRules } from 'element-plus';
+
+import { request } from '@/lib/js/api';
 
 const router = useRouter();
 

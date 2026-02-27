@@ -77,3 +77,49 @@ func (r *CourseController) Show(ctx http.Context) http.Response {
 
 	return response.Ok(ctx, "课程详情获取成功", course)
 }
+
+// 获取课程列表 - 管理员
+func (r *CourseController) AdminIndex(ctx http.Context) http.Response {
+	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
+		"page":  "required|uint",
+		"limit": "required|uint",
+	}, validation.Filters(map[string]string{
+		"page":  "int",
+		"limit": "int",
+	}))
+
+	if err != nil {
+		return response.InternalServerError(ctx, "E1", err)
+	}
+
+	if validator.Fails() {
+		return response.BadRequest(ctx, "参数错误", validator.Errors().All())
+	}
+
+	type req struct {
+		Page  int `form:"page"`
+		Limit int `form:"limit"`
+	}
+	var request req
+
+	if err := validator.Bind(&request); err != nil {
+		return response.InternalServerError(ctx, "E2", err)
+	}
+
+	var courses []models.Course
+	var total int64
+
+	if err := facades.Orm().Query().Paginate(
+		request.Page,
+		request.Limit,
+		&courses,
+		&total,
+	); err != nil {
+		return response.InternalServerError(ctx, "E3", err)
+	}
+
+	return response.Ok(ctx, "课程获取成功", map[string]any{
+		"courses": courses,
+		"total":   total,
+	})
+}

@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import type { EpisodesResource } from '@/types/episode';
-import type { CatchData } from '@/lib/js/api';
-import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { request } from '@/lib/js/api';
 import { ArrowRight } from '@element-plus/icons-vue';
 import DPlayer from 'dplayer';
 import { ElMessageBox } from 'element-plus';
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+
+import type { CatchData } from '@/lib/js/api';
+import type { EpisodesResource } from '@/types/episode';
+
+import { request } from '@/lib/js/api';
 
 const videoRef = ref(null);
 const route = useRoute();

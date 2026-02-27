@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { CourseResource } from '@/types/course';
-import type { EpisodesItemResource } from '@/types/episode';
-import type { CatchData } from '@/lib/js/api';
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { request } from '@/lib/js/api';
 import { ArrowRight } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 
-const defaultBgs = ['/img/bg-course-01.png', '/img/bg-course-02.png'];
+import type { CatchData } from '@/lib/js/api';
+import type { CourseResource } from '@/types/course';
+import type { EpisodesItemResource } from '@/types/episode';
+
+import { request } from '@/lib/js/api';
+import { getDefaultBgImg } from '@/lib/js/helper';
 
 const route = useRoute();
 const courseId = route.params.id;
@@ -46,7 +47,7 @@ onMounted(async function () {
       <div class="course-info">
         <div class="cover">
           <img
-            :src="course.cover_path || defaultBgs[course.id % 2]"
+            :src="course.cover_path || getDefaultBgImg(course.id)"
             alt="封面"
           />
         </div>

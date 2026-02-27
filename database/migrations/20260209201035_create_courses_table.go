@@ -18,7 +18,6 @@ func (r *M20260209201035CreateCoursesTable) Up() error {
 	if !facades.Schema().HasTable("courses") {
 		return facades.Schema().Create("courses", func(table schema.Blueprint) {
 			table.ID()                                     // 自增 ID
-			table.BigInteger("user_id")                    // 创建者 ID
 			table.BigInteger("category_id").Default(0)     // 所属分类 ID
 			table.String("title")                          // 课程标题
 			table.Text("description").Nullable()           // 课程简介

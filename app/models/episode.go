@@ -6,7 +6,6 @@ import "github.com/goravel/framework/database/orm"
 type Episode struct {
 	orm.Model
 
-	UserID      uint
 	CourseID    uint   `json:"course_id"`
 	Title       string `json:"title"`
 	FilePath    string `json:"file_path"`

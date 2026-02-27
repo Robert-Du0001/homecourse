@@ -1,7 +1,9 @@
-import type { UserResource } from '@/types/user';
-import { UserRole } from '@/types/user';
 import { defineStore } from 'pinia';
+
+import type { UserResource } from '@/types/user';
+
 import router from '@/router';
+import { UserRole } from '@/types/user';
 
 export const useUserStore = defineStore('user', {
   state: (): UserResource => ({

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 import {
   HomeFilled,
   Avatar,
@@ -8,6 +6,8 @@ import {
   Expand,
   Fold,
 } from '@element-plus/icons-vue';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 // 控制展开状态，false 为展开，true 为收缩
 const isCollapse = ref(false);
@@ -63,6 +63,9 @@ function goToIndex() {
                   <span>课程管理</span>
                 </template>
                 <el-menu-item-group>
+                  <el-menu-item index="/setting/categories"
+                    >课程分类</el-menu-item
+                  >
                   <el-menu-item index="/setting/courses">课程列表</el-menu-item>
                 </el-menu-item-group>
               </el-sub-menu>

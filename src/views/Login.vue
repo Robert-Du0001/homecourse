@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { FormInstance, FormRules } from 'element-plus';
-import type { UserResource } from '@/types/user';
+import { ElMessage } from 'element-plus';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '@/store/user';
+
+import type { UserResource } from '@/types/user';
+import type { FormInstance, FormRules } from 'element-plus';
+
 import { request } from '@/lib/js/api';
-import { ElMessage } from 'element-plus';
+import { useUserStore } from '@/store/user';
 
 const router = useRouter();
 const userStore = useUserStore();

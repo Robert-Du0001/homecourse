@@ -144,19 +144,35 @@ func (r *EpisodeController) Scan(ctx http.Context) http.Response {
 		courseMap[c.Title] = c.ID
 	}
 
-	cuser := ctx.Value(models.Cuser).(models.User)
+	// 获取默认课程分类
+	type episode struct {
+		ID uint
+	}
+	var defaultEpisode episode
+	if err := facades.Orm().Query().Where("is_default", true).FirstOrFail(&defaultEpisode); err != nil {
+		if errors.Is(err, errors.OrmRecordNotFound) {
+			return response.BadRequest(ctx, "默认课程分类不存在", nil)
+		}
+
+		return response.InternalServerError(ctx, "E2", err)
+	}
 
 	// 找出需要新创建的课程
 	var newCourses []models.Course
 	for _, name := range scannedCourseNames {
 		if _, exists := courseMap[name]; !exists {
-			newCourses = append(newCourses, models.Course{UserID: cuser.ID, Title: name})
+			newCourses = append(
+				newCourses,
+				models.Course{
+					CategoryID: defaultEpisode.ID,
+					Title:      name,
+				})
 		}
 	}
 
 	if len(newCourses) > 0 {
 		if err := facades.Orm().Query().Create(&newCourses); err != nil {
-			return response.InternalServerError(ctx, "E2", err)
+			return response.InternalServerError(ctx, "E3", err)
 		} else {
 			// 插入后更新 Map，拿到新生成的 ID
 			for _, nc := range newCourses {
@@ -174,7 +190,7 @@ func (r *EpisodeController) Scan(ctx http.Context) http.Response {
 
 	var existingEpisodes []models.Episode
 	if err := facades.Orm().Query().WhereIn("file_path", allPaths).Get(&existingEpisodes); err != nil {
-		return response.InternalServerError(ctx, "E3", err)
+		return response.InternalServerError(ctx, "E4", err)
 	}
 
 	// 构建已有 Episode 的 Map
@@ -188,7 +204,6 @@ func (r *EpisodeController) Scan(ctx http.Context) http.Response {
 	for _, se := range scannedEpisodes {
 		if _, exists := existingPathMap[se.FilePath]; !exists {
 			finalEpisodes = append(finalEpisodes, models.Episode{
-				UserID:   cuser.ID,
 				CourseID: courseMap[se.CourseName],
 				Title:    se.Title,
 				FilePath: se.FilePath,
@@ -198,7 +213,7 @@ func (r *EpisodeController) Scan(ctx http.Context) http.Response {
 
 	if len(finalEpisodes) > 0 {
 		if err := facades.Orm().Query().Create(&finalEpisodes); err != nil {
-			return response.InternalServerError(ctx, "E4", err)
+			return response.InternalServerError(ctx, "E5", err)
 		}
 	}
 

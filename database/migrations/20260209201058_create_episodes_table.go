@@ -18,7 +18,6 @@ func (r *M20260209201058CreateEpisodesTable) Up() error {
 	if !facades.Schema().HasTable("episodes") {
 		return facades.Schema().Create("episodes", func(table schema.Blueprint) {
 			table.ID()                                   // 自增 ID
-			table.BigInteger("user_id")                  // 创建者 ID
 			table.BigInteger("course_id").Default(0)     // 所属课程 ID
 			table.String("title")                        // 单集标题（如：01. 环境搭建）
 			table.String("file_path")                    // 视频文件的路径

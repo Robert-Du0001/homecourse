@@ -34,6 +34,7 @@ COPY --from=builder /build/.env.example /www/.env
 
 RUN /www/main artisan key:generate && \
     /www/main artisan jwt:secret && \
-    /www/main artisan migrate
+    /www/main artisan migrate && \
+    /www/main artisan app:init
 
 ENTRYPOINT ["/www/main"]

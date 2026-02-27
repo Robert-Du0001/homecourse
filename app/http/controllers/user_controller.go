@@ -7,6 +7,7 @@ import (
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/errors"
 	"github.com/goravel/framework/facades"
+	"github.com/goravel/framework/validation"
 )
 
 type UserController struct {
@@ -148,7 +149,10 @@ func (r *UserController) Index(ctx http.Context) http.Response {
 	validator, err := ctx.Request().Validate(map[string]string{
 		"page":  "required|uint",
 		"limit": "required|uint",
-	})
+	}, validation.Filters(map[string]string{
+		"page":  "int",
+		"limit": "int",
+	}))
 
 	if err != nil {
 		return response.InternalServerError(ctx, "E1", err)
@@ -190,8 +194,10 @@ func (r *UserController) Index(ctx http.Context) http.Response {
 func (r *UserController) Destroy(ctx http.Context) http.Response {
 	delUserID := ctx.Request().Route("id")
 
+	// 不能删除管理员
 	if _, err := facades.Orm().Query().Model(&models.User{}).
 		Where("id", delUserID).
+		Where("role", "<>", models.RoleAdmin).
 		Delete(); err != nil {
 		return response.InternalServerError(ctx, "E1", err)
 	}

@@ -1,11 +1,13 @@
-import type { UserResource } from '@/types/user';
-import type { CatchData } from '@/lib/js/api';
-import { createRouter, createWebHistory } from 'vue-router';
+import { ElMessageBox } from 'element-plus';
 import { storeToRefs } from 'pinia';
+import { createRouter, createWebHistory } from 'vue-router';
+
+import type { CatchData } from '@/lib/js/api';
+import type { UserResource } from '@/types/user';
+
+import { request } from '@/lib/js/api';
 import { useUserStore } from '@/store/user';
 import { UserRole } from '@/types/user';
-import { request } from '@/lib/js/api';
-import { ElMessageBox } from 'element-plus';
 
 const routes = [
   {
@@ -52,6 +54,11 @@ const routes = [
         path: '/setting/users',
         name: 'SettingUserList',
         component: () => import('@/views/setting/UserList.vue'),
+      },
+      {
+        path: '/setting/categories',
+        name: 'SettingCategoryList',
+        component: () => import('@/views/setting/CategoryList.vue'),
       },
       {
         path: '/setting/courses',

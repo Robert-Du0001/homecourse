@@ -34,9 +34,16 @@ func Api() {
 			router.Put("/episodes/scan", episodeController.Scan)
 
 			// 管理员
-			router.Middleware(middleware.Admin()).Group(func(router route.Router) {
+			router.Middleware(middleware.Admin()).Prefix("admin").Group(func(router route.Router) {
 				router.Get("/users", userController.Index)
 				router.Delete("/users/{id}", userController.Destroy)
+
+				// 课程分类相关路由
+				router.Get("/categories", categoryController.AdminIndex)
+				router.Put("/categories/{id}/default", categoryController.UpdateDefault)
+
+				// 课程相关路由
+				router.Get("/courses", courseController.AdminIndex)
 			})
 		})
 	})

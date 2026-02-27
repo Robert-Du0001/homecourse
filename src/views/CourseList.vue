@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import type { CourseResource } from '@/types/course';
+import { ElMessage } from 'element-plus';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+
+import type { CourseResource } from '@/types/course';
+
 import { request } from '@/lib/js/api';
-import { ElMessage } from 'element-plus';
+import { getDefaultBgImg } from '@/lib/js/helper';
 
 const router = useRouter();
-const defaultBgs = ['/img/bg-course-01.png', '/img/bg-course-02.png'];
 const courses = ref<CourseResource[]>([]);
 const loading = ref(false);
 
@@ -58,7 +60,10 @@ async function scan() {
       </template>
 
       <div class="content" @click="goToDetail(course.id)">
-        <img :src="course.cover_path || defaultBgs[course.id % 2]" alt="封面" />
+        <img
+          :src="course.cover_path || getDefaultBgImg(course.id)"
+          alt="封面"
+        />
         <div class="description">
           {{ course.description || '暂无课程描述...' }}
         </div>
