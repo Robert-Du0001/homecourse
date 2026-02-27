@@ -4,7 +4,11 @@ go 1.24.0
 
 require (
 	github.com/gin-gonic/gin v1.11.0
+<<<<<<< HEAD
 	github.com/goravel/framework v1.17.1
+=======
+	github.com/goravel/framework v1.17.0
+>>>>>>> main
 	github.com/goravel/gin v1.17.0
 	github.com/goravel/sqlite v1.17.0
 )

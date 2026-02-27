@@ -19,7 +19,11 @@ export type EpisodesResource = {
   /**
    * 所属的课程
    */
+<<<<<<< HEAD
   course: CourseResource;
+=======
+  course: CourseResource
+>>>>>>> main
 };
 
 /**
@@ -33,5 +37,9 @@ export type EpisodesItemResource = {
   /**
    * 剧集标题
    */
+<<<<<<< HEAD
   title: string;
+=======
+  title: string,
+>>>>>>> main
 };

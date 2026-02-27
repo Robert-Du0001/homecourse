@@ -19,7 +19,13 @@ const (
 
 type User struct {
 	orm.Model
+<<<<<<< HEAD
 	Name     string   `json:"name" form:"name"`
 	Password string   `json:"-" form:"password"`
 	Role     UserRole `json:"role"`
+=======
+	Name     string `json:"name" form:"name"`
+	Password string `json:"-" form:"password"`
+	Role     uint8  `json:"role"`
+>>>>>>> main
 }

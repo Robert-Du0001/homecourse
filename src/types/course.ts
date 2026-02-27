@@ -21,5 +21,9 @@ export type CourseResource = {
   /**
    * 创建日期
    */
+<<<<<<< HEAD
   created_at: string;
+=======
+  created_at: string,
+>>>>>>> main
 };

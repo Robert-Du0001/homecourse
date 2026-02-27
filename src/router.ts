@@ -46,6 +46,7 @@ const routes = [
     meta: { requiresAdmin: true },
     children: [
       {
+<<<<<<< HEAD
         path: '',
         name: 'Setting',
         component: () => import('@/views/setting/Index.vue'),
@@ -64,6 +65,11 @@ const routes = [
         path: '/setting/courses',
         name: 'SettingCourseList',
         component: () => import('@/views/setting/CourseList.vue'),
+=======
+        path: '', 
+        name: 'Setting',
+        component: () => import('@/views/setting/Index.vue'), 
+>>>>>>> main
       },
     ],
   },
@@ -85,9 +91,20 @@ router.beforeEach(async (to) => {
 
   const { token, role } = storeToRefs(userStore);
 
+<<<<<<< HEAD
   if (!token.value && to.name !== 'Register' && to.name !== 'Login') {
     return { name: 'Login' };
   } else if (token.value && (to.name === 'Register' || to.name === 'Login')) {
+=======
+  if (!token.value && (to.name !== 'Register' && to.name !== 'Login')) {
+    return { name: 'Login' };
+  }else if (token.value && (to.name === 'Register' || to.name === 'Login')) {
+    return { name: 'Index' };
+  }
+
+  const needsAdmin = to.matched.some(record => record.meta.requiresAdmin);
+  if (needsAdmin && role.value !== UserRole.ADMIN) {
+>>>>>>> main
     return { name: 'Index' };
   }
 

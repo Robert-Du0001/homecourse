@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <script setup lang="ts">
 import {
   HomeFilled,
@@ -156,3 +157,10 @@ function goToIndex() {
   height: 100%;
 }
 </style>
+=======
+<template>
+  <div class="setting-layout">
+    <router-view />
+  </div>
+</template>
+>>>>>>> main
