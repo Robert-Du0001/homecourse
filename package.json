@@ -11,15 +11,18 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
     "dplayer": "^1.27.1",
-    "element-plus": "^2.13.1",
+    "element-plus": "^2.13.4",
     "pinia": "^3.0.4",
+    "sortablejs": "^1.15.7",
     "vue": "^3.5.24",
-    "vue-router": "^4.6.4"
+    "vue-router": "^4.6.4",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@stylistic/eslint-plugin": "^5.8.0",
     "@types/dplayer": "^1.25.5",
+    "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "eslint": "^9.39.2",

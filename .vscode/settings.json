@@ -18,5 +18,15 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[go]": {
     "editor.defaultFormatter": "golang.go",
+  },
+  "logViewerPlus.watch": [
+    {
+      "title": "goravel.log",
+      "pattern": "${workspaceFolder}/storage/logs/goravel.log"
+    }
+  ],
+  "logViewerPlus.filter": {
+    "minLevel": "ALL",
+    "cleanFormat": false
   }
 }

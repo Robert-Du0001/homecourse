@@ -28,10 +28,9 @@ func Api() {
 			router.Get("/courses", courseController.Index)
 			router.Get("/courses/{id}", courseController.Show)
 
-			// 课程集相关路由
+			// 剧集相关路由
 			router.Get("/episodes", episodeController.Index)
 			router.Get("/episodes/{id}", episodeController.Show)
-			router.Put("/episodes/scan", episodeController.Scan)
 
 			// 管理员
 			router.Middleware(middleware.Admin()).Prefix("admin").Group(func(router route.Router) {
@@ -39,11 +38,17 @@ func Api() {
 				router.Delete("/users/{id}", userController.Destroy)
 
 				// 课程分类相关路由
-				router.Get("/categories", categoryController.AdminIndex)
+				router.Post("/categories", categoryController.Store)
+				router.Put("/categories/{id}", categoryController.Update)
 				router.Put("/categories/{id}/default", categoryController.UpdateDefault)
+				router.Put("/categories/sort", categoryController.UpdateSort)
+				router.Delete("/categories/{id}", categoryController.Destroy)
 
 				// 课程相关路由
 				router.Get("/courses", courseController.AdminIndex)
+
+				// 剧集相关路由
+				router.Put("/episodes/scan", episodeController.Scan)
 			})
 		})
 	})

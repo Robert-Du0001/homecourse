@@ -43,6 +43,7 @@ function goToIndex() {
               default-active="setting"
               :collapse="isCollapse"
               :router="true"
+              :default-openeds="['1', '2']"
             >
               <el-menu-item index="/setting">
                 <el-icon><HomeFilled /></el-icon>

@@ -8,7 +8,18 @@ import type { CourseResource } from '@/types/course';
 import { request } from '@/lib/js/api';
 import { getDefaultBgImg } from '@/lib/js/helper';
 
+/** 课程数据 */
 const courses = ref<CourseResource[]>();
+
+/**
+ * 扫描文件
+ */
+async function scan() {
+  const { msg } = await request('PUT', '/admin/episodes/scan');
+  ElMessage.success(msg);
+
+  await loadCourses();
+}
 
 /**
  * 获取课程数据
@@ -46,6 +57,12 @@ onMounted(loadCourses);
 </script>
 
 <template>
+  <el-row class="opration-panel" justify="end">
+    <el-col class="btns" :span="6" justify="end">
+      <el-button type="primary" @click="scan">扫描文件</el-button>
+    </el-col>
+  </el-row>
+
   <el-table
     :data="courses"
     :stripe="true"
@@ -75,3 +92,13 @@ onMounted(loadCourses);
     </el-table-column>
   </el-table>
 </template>
+
+<style scoped lang="scss">
+.opration-panel {
+  margin-bottom: 10px;
+
+  .btns {
+    text-align: right;
+  }
+}
+</style>

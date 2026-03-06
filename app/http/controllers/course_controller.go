@@ -24,9 +24,9 @@ func NewCourseController() *CourseController {
 // 获取课程列表
 func (r *CourseController) Index(ctx http.Context) http.Response {
 	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
-		"category_id": "int:-1",
+		"category_id": "uint",
 	}, validation.Filters(map[string]string{
-		"category_id": "int",
+		"category_id": "uint",
 	}))
 
 	if err != nil {
@@ -49,7 +49,7 @@ func (r *CourseController) Index(ctx http.Context) http.Response {
 	var courses []models.Course
 
 	if err := facades.Orm().Query().Where(func(query orm.Query) orm.Query {
-		if requestData.CategoryID != -1 {
+		if requestData.CategoryID != 0 {
 			return query.Where("category_id", requestData.CategoryID)
 		}
 		return query

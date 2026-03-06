@@ -145,11 +145,11 @@ func (r *EpisodeController) Scan(ctx http.Context) http.Response {
 	}
 
 	// 获取默认课程分类
-	type episode struct {
+	type category struct {
 		ID uint
 	}
-	var defaultEpisode episode
-	if err := facades.Orm().Query().Where("is_default", true).FirstOrFail(&defaultEpisode); err != nil {
+	var defaultCategory category
+	if err := facades.Orm().Query().Where("is_default", true).FirstOrFail(&defaultCategory); err != nil {
 		if errors.Is(err, errors.OrmRecordNotFound) {
 			return response.BadRequest(ctx, "默认课程分类不存在", nil)
 		}
@@ -164,7 +164,7 @@ func (r *EpisodeController) Scan(ctx http.Context) http.Response {
 			newCourses = append(
 				newCourses,
 				models.Course{
-					CategoryID: defaultEpisode.ID,
+					CategoryID: defaultCategory.ID,
 					Title:      name,
 				})
 		}

@@ -3,32 +3,61 @@ import { ElMessage } from 'element-plus';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
+import type { CatchData } from '@/lib/js/api';
+import type { CategoryResource } from '@/types/category';
 import type { CourseResource } from '@/types/course';
 
 import { request } from '@/lib/js/api';
 import { getDefaultBgImg } from '@/lib/js/helper';
 
 const router = useRouter();
-const courses = ref<CourseResource[]>([]);
-const loading = ref(false);
 
-onMounted(async function () {
-  loading.value = true;
+/** 分类数据 */
+const categories = ref<CategoryResource[]>();
+/** 课程列表 */
+const courses = ref<CourseResource[]>([]);
+/** 加载课程列表状态 */
+const loading = ref(false);
+/** 当前选中的课程分类 */
+const activeCategoryId = ref(0);
+
+/**
+ * 获取课程分类数据
+ */
+async function loadCategories() {
   try {
-    await loadCourses();
+    const { data } = await request<CategoryResource[]>('GET', `/categories`);
+    categories.value = data;
+  } catch (e) {
+    const { msg } = e as CatchData;
+    ElMessage.error(msg);
+  }
+}
+
+/**
+ * 获取课程数据
+ */
+async function loadCourses(categoryId: number) {
+  try {
+    loading.value = true;
+    const { data } = await request<CourseResource[]>(
+      'GET',
+      `/courses?category_id=${categoryId}`,
+    );
+    courses.value = data;
+    activeCategoryId.value = categoryId;
+  } catch (e) {
+    const { msg } = e as CatchData;
+    ElMessage.error(msg);
   } finally {
     loading.value = false;
   }
-});
-
-async function loadCourses() {
-  const { data } = await request<CourseResource[]>(
-    'GET',
-    '/courses?category_id=-1',
-  );
-  courses.value = data;
 }
 
+/**
+ * 跳转到课程详情
+ * @param courseId 课程ID
+ */
 function goToDetail(courseId: number) {
   router.push({
     name: 'CourseDetail',
@@ -36,21 +65,34 @@ function goToDetail(courseId: number) {
   });
 }
 
-/**
- * 扫描文件
- */
-async function scan() {
-  const { msg } = await request('PUT', '/episodes/scan');
-  ElMessage.success(msg);
-
-  await loadCourses();
-}
+onMounted(async function () {
+  await loadCategories();
+  await loadCourses(0);
+});
 </script>
 
 <template>
-  <div class="operate-btn">
-    <el-button type="primary" @click="scan"> 扫描文件 </el-button>
+  <!-- 分类筛选 -->
+  <div class="capsule-container">
+    <el-check-tag
+      :checked="activeCategoryId === 0"
+      class="capsule-tag"
+      @change="loadCourses(0)"
+    >
+      全部
+    </el-check-tag>
+
+    <el-check-tag
+      v-for="item in categories"
+      :key="item.id"
+      :checked="activeCategoryId === item.id"
+      class="capsule-tag"
+      @change="loadCourses(item.id)"
+    >
+      {{ item.name }}
+    </el-check-tag>
   </div>
+
   <div v-loading="loading" class="course-list">
     <el-card v-for="(course, i) in courses" :key="i" class="course-card">
       <template #header>
@@ -81,6 +123,40 @@ async function scan() {
 <style scoped lang="scss">
 .operate-btn {
   text-align: right;
+}
+
+.capsule-container {
+  display: flex;
+  flex-wrap: wrap; /* 自动换行 */
+  gap: 12px; /* 标签之间的间距 */
+  margin: 20px 0;
+
+  .capsule-tag {
+    /* 基础样式 */
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgb(144 147 153);
+    cursor: pointer;
+
+    /* 未选中状态：浅灰色背景 */
+    background-color: rgb(244 244 245);
+    border: none;
+    border-radius: 20px; /* 足够大的圆角形成胶囊状 */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      color: rgb(64 158 255);
+      background-color: rgb(233 233 235);
+    }
+
+    /* 选中状态：Element 主色调 */
+    &.is-checked {
+      color: rgb(255 255 255);
+      background-color: rgb(64 158 255);
+      box-shadow: 0 4px 12px rgb(64 158 255 / 30%); /* 增加一点发光投影 */
+    }
+  }
 }
 
 .course-list {
