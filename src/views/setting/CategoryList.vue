@@ -181,6 +181,7 @@ async function setCategory() {
     ElMessage.error(msg);
   }
 }
+
 /**
  * 添加分类
  */
@@ -199,11 +200,11 @@ async function addCategory() {
  */
 async function editCategory(category: CategoryResource) {
   dialogMode.value = 'edit';
-  dialogVisible.value = true;
   categoryForm.value = {
     id: category.id,
     name: category.name,
   };
+  dialogVisible.value = true;
 }
 
 onMounted(loadCategories);
@@ -224,11 +225,13 @@ onMounted(loadCategories);
     :center="true"
   >
     <el-form :model="categoryForm">
-      <el-form-item label="分类名" label-width="80px">
+      <el-form-item label="分类名" required label-width="80px">
         <el-input
           v-model="categoryForm.name"
+          placeholder="请输入分类名"
           autocomplete="off"
           maxlength="10"
+          show-word-limit
         />
       </el-form-item>
     </el-form>
@@ -257,7 +260,7 @@ onMounted(loadCategories);
       </template>
     </el-table-column>
 
-    <el-table-column prop="name" label="分类名" width="180" />
+    <el-table-column prop="name" label="分类名" width="580" />
     <el-table-column label="默认分类" width="180">
       <template #default="{ row }: { row: CategoryResource }">
         <el-switch

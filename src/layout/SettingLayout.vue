@@ -40,7 +40,7 @@ function goToIndex() {
           <el-scrollbar>
             <el-menu
               class="admin-menu"
-              default-active="setting"
+              default-active="/setting"
               :collapse="isCollapse"
               :router="true"
               :default-openeds="['1', '2']"

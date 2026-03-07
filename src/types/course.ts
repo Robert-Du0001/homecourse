@@ -11,7 +11,7 @@ export type CourseResource = {
    */
   title: string;
   /**
-   * 简介
+   * 课程简介
    */
   description: string;
   /**

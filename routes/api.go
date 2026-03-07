@@ -46,6 +46,9 @@ func Api() {
 
 				// 课程相关路由
 				router.Get("/courses", courseController.AdminIndex)
+				router.Post("/courses", courseController.Store)
+				router.Put("/courses/{id}", courseController.Update)
+				router.Delete("/courses/{id}", courseController.Destroy)
 
 				// 剧集相关路由
 				router.Put("/episodes/scan", episodeController.Scan)

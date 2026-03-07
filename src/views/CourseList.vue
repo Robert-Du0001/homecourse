@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 import type { CatchData } from '@/lib/js/api';
@@ -9,6 +9,12 @@ import type { CourseResource } from '@/types/course';
 
 import { request } from '@/lib/js/api';
 import { getDefaultBgImg } from '@/lib/js/helper';
+
+/** 分类选项类型 */
+type Option = {
+  label: string;
+  value: number;
+};
 
 const router = useRouter();
 
@@ -20,6 +26,19 @@ const courses = ref<CourseResource[]>([]);
 const loading = ref(false);
 /** 当前选中的课程分类 */
 const activeCategoryId = ref(0);
+
+/** 分类选项 */
+const segmentedOptions = computed(() => {
+  let baseOptions: Option[] = [];
+  if (categories.value) {
+    baseOptions = categories.value.map((item) => ({
+      label: item.name,
+      value: item.id,
+    }));
+  }
+
+  return [{ label: '全部', value: 0 }, ...baseOptions];
+});
 
 /**
  * 获取课程分类数据
@@ -73,24 +92,13 @@ onMounted(async function () {
 
 <template>
   <!-- 分类筛选 -->
-  <div class="capsule-container">
-    <el-check-tag
-      :checked="activeCategoryId === 0"
-      class="capsule-tag"
-      @change="loadCourses(0)"
-    >
-      全部
-    </el-check-tag>
-
-    <el-check-tag
-      v-for="item in categories"
-      :key="item.id"
-      :checked="activeCategoryId === item.id"
-      class="capsule-tag"
-      @change="loadCourses(item.id)"
-    >
-      {{ item.name }}
-    </el-check-tag>
+  <div class="filter-container">
+    <el-segmented
+      v-model="activeCategoryId"
+      :options="segmentedOptions"
+      size="large"
+      @change="loadCourses"
+    />
   </div>
 
   <div v-loading="loading" class="course-list">
@@ -125,36 +133,35 @@ onMounted(async function () {
   text-align: right;
 }
 
-.capsule-container {
-  display: flex;
-  flex-wrap: wrap; /* 自动换行 */
-  gap: 12px; /* 标签之间的间距 */
+.filter-container {
   margin: 20px 0;
 
-  .capsule-tag {
-    /* 基础样式 */
-    padding: 8px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: rgb(144 147 153);
-    cursor: pointer;
+  .el-segmented {
+    /* 组件整体圆角，让它更圆润，像个胶囊容器 */
+    --el-border-radius-base: 24px;
 
-    /* 未选中状态：浅灰色背景 */
-    background-color: rgb(244 244 245);
-    border: none;
-    border-radius: 20px; /* 足够大的圆角形成胶囊状 */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 未选中状态的背景色 */
+    --el-segmented-bg-color: rgb(240 242 245);
 
-    &:hover {
-      color: rgb(64 158 255);
-      background-color: rgb(233 233 235);
+    /* --- 关键改变：选中的按钮样式 --- */
+
+    /* 1. 选中的滑块背景色（好看的活力橙） */
+    --el-segmented-item-selected-bg-color: rgb(255 149 0);
+
+    /* 2. 选中的文字颜色（改为白色，与橙色更搭，比默认黑色好看） */
+    --el-segmented-item-selected-color: rgb(255 255 255);
+
+    /* 3. 给选中的胶囊增加一点轻微的发光阴影，增强质感 */
+    --el-segmented-item-selected-box-shadow: 0 4px 10px rgb(255 120 45 / 20%);
+
+    :deep(.el-segmented__item + .el-segmented__item) {
+      margin-left: 10px;
     }
 
-    /* 选中状态：Element 主色调 */
-    &.is-checked {
-      color: rgb(255 255 255);
-      background-color: rgb(64 158 255);
-      box-shadow: 0 4px 12px rgb(64 158 255 / 30%); /* 增加一点发光投影 */
+    :deep(
+      .el-segmented__item:not(.is-selected):hover .el-segmented__item-label
+    ) {
+      color: rgb(255 149 0); /* 亮橙色 */
     }
   }
 }

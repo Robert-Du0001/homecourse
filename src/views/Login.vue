@@ -94,6 +94,8 @@ const submitForm = async (formEl: FormInstance | undefined) => {
             v-model="ruleForm.name"
             type="text"
             placeholder="请输入您的账号"
+            maxlength="10"
+            show-word-limit
           />
         </el-form-item>
         <el-form-item label="密码" prop="password">
@@ -101,6 +103,8 @@ const submitForm = async (formEl: FormInstance | undefined) => {
             v-model="ruleForm.password"
             type="password"
             placeholder="请输入您的密码"
+            maxlength="20"
+            show-password
           />
         </el-form-item>
         <!-- <el-form-item

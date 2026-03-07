@@ -123,3 +123,102 @@ func (r *CourseController) AdminIndex(ctx http.Context) http.Response {
 		"total":   total,
 	})
 }
+
+// 删除课程 - 管理员
+func (r *CourseController) Destroy(ctx http.Context) http.Response {
+	courseId := ctx.Request().Route("id")
+
+	// 如果课程下有剧集，则不能删除
+	if exists, err := facades.Orm().Query().Model(&models.Episode{}).
+		Where("course_id", courseId).Exists(); err != nil {
+		return response.InternalServerError(ctx, "E1", err)
+	} else if exists {
+		return response.BadRequest(ctx, "课程下有剧集，请先删除剧集", nil)
+	}
+
+	if _, err := facades.Orm().Query().Model(&models.Course{}).
+		Where("id", courseId).Delete(); err != nil {
+		return response.InternalServerError(ctx, "E2", err)
+	}
+
+	return response.Ok(ctx, "删除成功", nil)
+}
+
+// 添加课程 - 管理员
+func (r *CourseController) Store(ctx http.Context) http.Response {
+	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
+		"title":       "required|string|max_len:10",
+		"category_id": "required|uint|exists:categories,category_id",
+		"description": "string|max_len:200",
+		"cover_path":  "string|max_len:255",
+	}, validation.Filters(map[string]string{
+		"category_id": "uint",
+	}))
+
+	if err != nil {
+		return response.InternalServerError(ctx, "E1", err)
+	}
+
+	if validator.Fails() {
+		return response.BadRequest(ctx, "参数错误", validator.Errors().All())
+	}
+
+	type req struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		CoverPath   string `json:"cover_path"`
+	}
+	var requestData req
+
+	if err := validator.Bind(&requestData); err != nil {
+		return response.InternalServerError(ctx, "E2", err)
+	}
+
+	course := &models.Course{
+		Title:       requestData.Title,
+		Description: requestData.Description,
+		CoverPath:   requestData.CoverPath,
+	}
+
+	if err := facades.Orm().Query().Create(course); err != nil {
+		return response.InternalServerError(ctx, "E3", err)
+	}
+
+	return response.Ok(ctx, "课程创建成功", nil)
+}
+
+// 修改课程 - 管理员
+func (r *CourseController) Update(ctx http.Context) http.Response {
+	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
+		"id":          "required|uint",
+		"title":       "required|string|max_len:10",
+		"category_id": "required|uint|exists:categories,category_id",
+		"description": "string|max_len:200",
+		"cover_path":  "string|max_len:255",
+	}, validation.Filters(map[string]string{
+		"id":          "uint",
+		"category_id": "uint",
+	}))
+
+	if err != nil {
+		return response.InternalServerError(ctx, "E1", err)
+	}
+
+	if validator.Fails() {
+		return response.BadRequest(ctx, "参数错误", validator.Errors().All())
+	}
+
+	var course models.Course
+
+	if err := validator.Bind(&course); err != nil {
+		return response.InternalServerError(ctx, "E2", err)
+	}
+
+	if _, err := facades.Orm().Query().Model(&models.Course{}).
+		Where("id", course.ID).
+		Update(course); err != nil {
+		return response.InternalServerError(ctx, "E3", err)
+	}
+
+	return response.Ok(ctx, "课程修改成功", nil)
+}
