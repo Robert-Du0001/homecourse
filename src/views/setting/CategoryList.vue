@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { Edit, Delete, Rank } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import Sortable from 'sortablejs';
-import { onMounted, ref, nextTick } from 'vue';
-import { object, string } from 'yup';
+import { Edit, Delete, Rank } from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import Sortable from "sortablejs";
+import { onMounted, ref, nextTick } from "vue";
+import { object, string } from "yup";
 
-import type { CatchData } from '@/lib/js/api';
-import type { CategoryResource } from '@/types/category';
-import type { ValidationError } from 'yup';
+import type { CatchData } from "@/lib/js/api";
+import type { CategoryResource } from "@/types/category";
+import type { ValidationError } from "yup";
 
-import { request } from '@/lib/js/api';
+import { request } from "@/lib/js/api";
 
 /** 分类数据 */
 const categories = ref<CategoryResource[]>();
@@ -22,20 +22,20 @@ const dialogVisible = ref(false);
  * 'add' 添加模式
  * 'edit' 编辑模式
  */
-const dialogMode = ref('add');
+const dialogMode = ref("add");
 
 /** 添加/编辑分类表单 */
 const categoryForm = ref({
   /** 课程分类ID */
   id: 0,
   /** 分类名 */
-  name: '',
+  name: "",
 });
 
 /** 分类表单验证规则 */
 const categorySchema = object({
   /** 分类名 */
-  name: string().required('请输入分类名').max(10, '分类名不能超过10个字符'),
+  name: string().required("请输入分类名").max(10, "分类名不能超过10个字符"),
 });
 
 /** 表格 DOM 引用 */
@@ -49,7 +49,7 @@ let sortableInstance: Sortable | null = null;
  */
 function initDragSort() {
   // Element Plus 的表格内容在 .el-table__body-wrapper tbody 中
-  const el = tableRef.value?.$el.querySelector('.el-table__body-wrapper tbody');
+  const el = tableRef.value?.$el.querySelector(".el-table__body-wrapper tbody");
 
   if (!el) return;
 
@@ -60,7 +60,7 @@ function initDragSort() {
 
   sortableInstance = Sortable.create(el, {
     animation: 150,
-    handle: '.drag-handler', // 建议设置一个拖拽手柄，防止点击其他按钮时误触发
+    handle: ".drag-handler", // 建议设置一个拖拽手柄，防止点击其他按钮时误触发
     onEnd: async ({ newIndex, oldIndex }) => {
       if (
         newIndex === oldIndex ||
@@ -84,7 +84,7 @@ function initDragSort() {
       // 这里的逻辑取决于你后端接口的设计，通常是发送当前 ID 列表或 newIndex
       try {
         const ids = categories.value!.map((item) => item.id);
-        const { msg } = await request('PUT', '/admin/categories/sort', { ids });
+        const { msg } = await request("PUT", "/admin/categories/sort", { ids });
         ElMessage.success(msg);
       } catch (e) {
         const { msg } = e as CatchData;
@@ -101,7 +101,7 @@ function initDragSort() {
  */
 async function loadCategories() {
   try {
-    const { data } = await request<CategoryResource[]>('GET', `/categories`);
+    const { data } = await request<CategoryResource[]>("GET", `/categories`);
     categories.value = data;
 
     // 必须在 DOM 更新后初始化拖拽
@@ -118,12 +118,12 @@ async function loadCategories() {
  * @param id 删除的课程分类ID
  */
 function delCategory(id: number) {
-  ElMessageBox.confirm('此操作将永久删除该分类, 是否继续?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
+  ElMessageBox.confirm("此操作将永久删除该分类, 是否继续?", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
   }).then(() => {
-    request('DELETE', `/admin/categories/${id}`)
+    request("DELETE", `/admin/categories/${id}`)
       .then(async ({ msg }) => {
         ElMessage.success(msg);
 
@@ -141,7 +141,7 @@ function delCategory(id: number) {
  */
 function setDefault(id: number, val: boolean) {
   if (val === true) {
-    request('PUT', `/admin/categories/${id}/default`)
+    request("PUT", `/admin/categories/${id}/default`)
       .then(async ({ msg }) => {
         ElMessage.success(msg);
 
@@ -167,10 +167,10 @@ async function setCategory() {
   }
 
   try {
-    const apiMethod = dialogMode.value === 'add' ? 'POST' : 'PUT';
+    const apiMethod = dialogMode.value === "add" ? "POST" : "PUT";
     const api =
-      dialogMode.value === 'add'
-        ? '/admin/categories'
+      dialogMode.value === "add"
+        ? "/admin/categories"
         : `/admin/categories/${categoryForm.value.id}`;
     const { msg } = await request(apiMethod, api, category);
     ElMessage.success(msg);
@@ -186,11 +186,11 @@ async function setCategory() {
  * 添加分类
  */
 async function addCategory() {
-  dialogMode.value = 'add';
+  dialogMode.value = "add";
   dialogVisible.value = true;
   categoryForm.value = {
     id: 0,
-    name: '',
+    name: "",
   };
 }
 
@@ -199,7 +199,7 @@ async function addCategory() {
  * @param category 分类数据
  */
 async function editCategory(category: CategoryResource) {
-  dialogMode.value = 'edit';
+  dialogMode.value = "edit";
   categoryForm.value = {
     id: category.id,
     name: category.name,

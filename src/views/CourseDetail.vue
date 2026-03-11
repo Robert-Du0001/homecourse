@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ArrowRight } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { ArrowRight } from "@element-plus/icons-vue";
+import { ElMessage } from "element-plus";
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
 
-import type { CatchData } from '@/lib/js/api';
-import type { CourseResource } from '@/types/course';
-import type { EpisodesItemResource } from '@/types/episode';
+import type { CatchData } from "@/lib/js/api";
+import type { CourseResource } from "@/types/course";
+import type { EpisodesItemResource } from "@/types/episode";
 
-import { request } from '@/lib/js/api';
-import { getDefaultBgImg } from '@/lib/js/helper';
+import { request } from "@/lib/js/api";
+import { getDefaultBgImg } from "@/lib/js/helper";
 
 const route = useRoute();
 const courseId = route.params.id;
@@ -19,13 +19,13 @@ const episodes = ref<EpisodesItemResource[]>([]);
 onMounted(async function () {
   try {
     const { data: courseData } = await request<CourseResource>(
-      'GET',
+      "GET",
       `/courses/${courseId}`,
     );
     course.value = courseData;
 
     const { data: episodesData } = await request<EpisodesItemResource[]>(
-      'GET',
+      "GET",
       `/episodes?course_id=${courseId}`,
     );
     episodes.value = episodesData;
@@ -56,7 +56,7 @@ onMounted(async function () {
             {{ course.title }}
           </div>
           <div class="description">
-            {{ course.description || '暂无简介' }}
+            {{ course.description || "暂无简介" }}
           </div>
         </div>
       </div>
@@ -73,7 +73,7 @@ onMounted(async function () {
       <ul v-else class="episodes">
         <li v-for="(e, i) in episodes" :key="i" class="episode-item">
           <el-link type="primary" :href="'/episodes/' + e.id">
-            {{ e.title.split('.')[0] }}
+            {{ e.title.split(".")[0] }}
           </el-link>
         </li>
       </ul>

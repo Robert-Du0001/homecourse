@@ -1,4 +1,4 @@
-import type { CourseResource } from '@/types/course';
+import type { CourseResource } from "@/types/course";
 
 /**
  * 剧集数据

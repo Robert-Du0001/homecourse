@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import { Edit, Delete, Plus } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { onMounted, ref } from 'vue';
-import { object, string } from 'yup';
+import { Edit, Delete, Plus } from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { computed, onMounted, ref } from "vue";
+import { object, string } from "yup";
 
-import type { CatchData } from '@/lib/js/api';
-import type { CourseResource } from '@/types/course';
-import type { UploadFile } from 'element-plus';
-import type { ValidationError } from 'yup';
+import type { CatchData } from "@/lib/js/api";
+import type { CategoryResource } from "@/types/category";
+import type { CourseResource } from "@/types/course";
+import type { UploadFile } from "element-plus";
+import type { ValidationError } from "yup";
 
-import { request } from '@/lib/js/api';
-import { getDefaultBgImg } from '@/lib/js/helper';
+import { request } from "@/lib/js/api";
+import { getDefaultBgImg } from "@/lib/js/helper";
 
+/** 分类数据 */
+const categories = ref<CategoryResource[]>();
 /** 课程数据 */
 const courses = ref<CourseResource[]>();
-
 /** 是否显示添加/编辑课程对话框 */
 const dialogVisible = ref(false);
 /**
@@ -23,35 +25,48 @@ const dialogVisible = ref(false);
  * 'add' 添加模式
  * 'edit' 编辑模式
  */
-const dialogMode = ref('add');
+const dialogMode = ref("add");
 
 /** 添加/编辑课程表单 */
 const courseForm = ref({
   /** 课程分类ID */
   id: 0,
+  /** 课程分类ID */
+  category_id: 0,
   /** 课程标题 */
-  title: '',
+  title: "",
   /** 课程简介 */
-  description: '',
+  description: "",
   /** 课程封面 */
-  cover_path: '',
+  cover_path: "",
 });
 
 /** 课程表单验证规则 */
 const courseSchema = object({
   /** 课程标题 */
   title: string()
-    .required('请输入课程标题')
-    .max(20, '课程标题不能超过20个字符'),
+    .required("请输入课程标题")
+    .max(20, "课程标题不能超过20个字符"),
   /** 课程简介 */
-  description: string().max(200, '课程简介不能超过200个字符'),
+  description: string().max(200, "课程简介不能超过200个字符"),
+});
+
+/** 分类查找映射表 { id: name } */
+const categoryMap = computed(() => {
+  const map: Record<number, string> = {};
+  if (categories.value) {
+    categories.value.forEach((item) => {
+      map[item.id] = item.name;
+    });
+  }
+  return map;
 });
 
 /**
  * 扫描文件
  */
 async function scan() {
-  const { msg } = await request('PUT', '/admin/episodes/scan');
+  const { msg } = await request("PUT", "/admin/episodes/scan");
   ElMessage.success(msg);
 
   await loadCourses();
@@ -62,10 +77,18 @@ async function scan() {
  */
 async function loadCourses() {
   try {
+    const { data } = await request<CategoryResource[]>("GET", `/categories`);
+    categories.value = data;
+  } catch (e) {
+    const { msg } = e as CatchData;
+    ElMessage.error(msg);
+  }
+
+  try {
     const { data } = await request<{
       courses: CourseResource[];
       total: number;
-    }>('GET', `/admin/courses?page=1&limit=10`);
+    }>("GET", `/admin/courses?page=1&limit=10`);
     courses.value = data.courses;
   } catch (e) {
     const { msg } = e as CatchData;
@@ -78,12 +101,12 @@ async function loadCourses() {
  * @param id 删除的课程ID
  */
 function delCourse(id: number) {
-  ElMessageBox.confirm('此操作将永久删除该课程, 是否继续?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
+  ElMessageBox.confirm("此操作将永久删除该课程, 是否继续?", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
   }).then(() => {
-    request('DELETE', `/admin/courses/${id}`)
+    request("DELETE", `/admin/courses/${id}`)
       .then(async ({ msg }) => {
         ElMessage.success(msg);
 
@@ -99,13 +122,14 @@ function delCourse(id: number) {
  * 添加课程
  */
 function addCourse() {
-  dialogMode.value = 'add';
+  dialogMode.value = "add";
   dialogVisible.value = true;
   courseForm.value = {
     id: 0,
-    title: '',
-    description: '',
-    cover_path: '',
+    category_id: categories.value![0]!.id,
+    title: "",
+    description: "",
+    cover_path: "",
   };
 }
 
@@ -123,10 +147,10 @@ async function setCourse() {
   }
 
   try {
-    const apiMethod = dialogMode.value === 'add' ? 'POST' : 'PUT';
+    const apiMethod = dialogMode.value === "add" ? "POST" : "PUT";
     const api =
-      dialogMode.value === 'add'
-        ? '/admin/courses'
+      dialogMode.value === "add"
+        ? "/admin/courses"
         : `/admin/courses/${courseForm.value.id}`;
     const { msg } = await request(apiMethod, api, course);
     ElMessage.success(msg);
@@ -143,9 +167,10 @@ async function setCourse() {
  * @param course 课程数据
  */
 async function editCourse(course: CourseResource) {
-  dialogMode.value = 'edit';
+  dialogMode.value = "edit";
   courseForm.value = {
     id: course.id,
+    category_id: course.category_id,
     title: course.title,
     description: course.description,
     cover_path: course.cover_path,
@@ -160,15 +185,15 @@ function handleCoverChange(file: UploadFile) {
   console.log(file);
 
   if (!file.raw) {
-    ElMessage.error('请选择封面文件!');
+    ElMessage.error("请选择封面文件!");
     return;
   }
 
   // 1. 简单的文件类型校验
   const isValid =
-    file.raw.type === 'image/jpeg' || file.raw.type === 'image/png';
+    file.raw.type === "image/jpeg" || file.raw.type === "image/png";
   if (!isValid) {
-    ElMessage.error('封面只能是 JPG 或 PNG 格式!');
+    ElMessage.error("封面只能是 JPG 或 PNG 格式!");
     return;
   }
 
@@ -216,6 +241,21 @@ onMounted(loadCourses);
         </el-upload>
       </el-form-item>
 
+      <el-form-item label="课程分类" label-width="80px">
+        <el-select
+          v-model="courseForm.category_id"
+          placeholder="Select"
+          style="width: 240px"
+        >
+          <el-option
+            v-for="item in categories"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          />
+        </el-select>
+      </el-form-item>
+
       <el-form-item label="课程标题" required label-width="80px">
         <el-input
           v-model="courseForm.title"
@@ -260,6 +300,11 @@ onMounted(loadCourses);
           :src="row.cover_path || getDefaultBgImg(row.id)"
           fit="cover"
         />
+      </template>
+    </el-table-column>
+    <el-table-column prop="title" label="课程分类" width="120">
+      <template #default="{ row }: { row: CourseResource }">
+        <el-tag>{{ categoryMap[row.category_id] || "未分类" }}</el-tag>
       </template>
     </el-table-column>
     <el-table-column prop="title" label="课程标题" width="280" />

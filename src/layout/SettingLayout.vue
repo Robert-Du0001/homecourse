@@ -5,16 +5,16 @@ import {
   Management,
   Expand,
   Fold,
-} from '@element-plus/icons-vue';
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+} from "@element-plus/icons-vue";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 
 // 控制展开状态，false 为展开，true 为收缩
 const isCollapse = ref(false);
 const router = useRouter();
 
 function goToIndex() {
-  router.push({ name: 'Index' });
+  router.push({ name: "Index" });
 }
 </script>
 

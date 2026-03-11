@@ -148,7 +148,7 @@ func (r *CourseController) Destroy(ctx http.Context) http.Response {
 func (r *CourseController) Store(ctx http.Context) http.Response {
 	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
 		"title":       "required|string|max_len:10",
-		"category_id": "required|uint|exists:categories,category_id",
+		"category_id": "required|uint|exists:categories",
 		"description": "string|max_len:200",
 		"cover_path":  "string|max_len:255",
 	}, validation.Filters(map[string]string{
@@ -164,9 +164,10 @@ func (r *CourseController) Store(ctx http.Context) http.Response {
 	}
 
 	type req struct {
-		Title       string `json:"title"`
-		Description string `json:"description"`
-		CoverPath   string `json:"cover_path"`
+		Title       string `form:"title"`
+		CategoryID  uint   `form:"category_id"`
+		Description string `form:"description"`
+		CoverPath   string `form:"cover_path"`
 	}
 	var requestData req
 
@@ -176,6 +177,7 @@ func (r *CourseController) Store(ctx http.Context) http.Response {
 
 	course := &models.Course{
 		Title:       requestData.Title,
+		CategoryID:  requestData.CategoryID,
 		Description: requestData.Description,
 		CoverPath:   requestData.CoverPath,
 	}
@@ -192,7 +194,7 @@ func (r *CourseController) Update(ctx http.Context) http.Response {
 	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
 		"id":          "required|uint",
 		"title":       "required|string|max_len:10",
-		"category_id": "required|uint|exists:categories,category_id",
+		"category_id": "required|uint|exists:categories",
 		"description": "string|max_len:200",
 		"cover_path":  "string|max_len:255",
 	}, validation.Filters(map[string]string{

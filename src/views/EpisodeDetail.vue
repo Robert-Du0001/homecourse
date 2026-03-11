@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ArrowRight } from '@element-plus/icons-vue';
-import DPlayer from 'dplayer';
-import { ElMessageBox } from 'element-plus';
-import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { ArrowRight } from "@element-plus/icons-vue";
+import DPlayer from "dplayer";
+import { ElMessageBox } from "element-plus";
+import { onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
 
-import type { CatchData } from '@/lib/js/api';
-import type { EpisodesResource } from '@/types/episode';
+import type { CatchData } from "@/lib/js/api";
+import type { EpisodesResource } from "@/types/episode";
 
-import { request } from '@/lib/js/api';
+import { request } from "@/lib/js/api";
 
 const videoRef = ref(null);
 const route = useRoute();
@@ -18,14 +18,14 @@ const episode = ref<EpisodesResource>();
 onMounted(async () => {
   try {
     const episodeRes = await request<EpisodesResource>(
-      'GET',
+      "GET",
       `/episodes/${episodeId}`,
     );
     episode.value = episodeRes.data;
   } catch (e) {
     const rd = e as CatchData;
-    ElMessageBox.alert(rd.msg, '温馨提示', {
-      confirmButtonText: '确认',
+    ElMessageBox.alert(rd.msg, "温馨提示", {
+      confirmButtonText: "确认",
     });
   }
 
@@ -35,7 +35,7 @@ onMounted(async () => {
     screenshot: true,
     video: {
       url: `/media/${episodeId}`,
-      type: 'auto',
+      type: "auto",
     },
   });
 });

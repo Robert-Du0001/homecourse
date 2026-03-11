@@ -1,69 +1,69 @@
-import { ElMessageBox } from 'element-plus';
-import { storeToRefs } from 'pinia';
-import { createRouter, createWebHistory } from 'vue-router';
+import { ElMessageBox } from "element-plus";
+import { storeToRefs } from "pinia";
+import { createRouter, createWebHistory } from "vue-router";
 
-import type { CatchData } from '@/lib/js/api';
-import type { UserResource } from '@/types/user';
+import type { CatchData } from "@/lib/js/api";
+import type { UserResource } from "@/types/user";
 
-import { request } from '@/lib/js/api';
-import { useUserStore } from '@/store/user';
-import { UserRole } from '@/types/user';
+import { request } from "@/lib/js/api";
+import { useUserStore } from "@/store/user";
+import { UserRole } from "@/types/user";
 
 const routes = [
   {
-    path: '/login',
-    name: 'Login',
-    component: () => import('@/views/Login.vue'),
+    path: "/login",
+    name: "Login",
+    component: () => import("@/views/Login.vue"),
   },
   {
-    path: '/register',
-    name: 'Register',
-    component: () => import('@/views/Register.vue'),
+    path: "/register",
+    name: "Register",
+    component: () => import("@/views/Register.vue"),
   },
   {
-    path: '/',
-    component: () => import('@/layout/CommonLayout.vue'), // 通用布局
+    path: "/",
+    component: () => import("@/layout/CommonLayout.vue"), // 通用布局
     children: [
       {
-        path: '',
-        name: 'Index',
-        component: () => import('@/views/CourseList.vue'),
+        path: "",
+        name: "Index",
+        component: () => import("@/views/CourseList.vue"),
       },
       {
-        path: '/courses/:id',
-        name: 'CourseDetail',
-        component: () => import('@/views/CourseDetail.vue'),
+        path: "/courses/:id",
+        name: "CourseDetail",
+        component: () => import("@/views/CourseDetail.vue"),
       },
       {
-        path: '/episodes/:id',
-        component: () => import('@/views/EpisodeDetail.vue'),
+        path: "/episodes/:id",
+        component: () => import("@/views/EpisodeDetail.vue"),
       },
     ],
   },
   {
-    path: '/setting',
-    component: () => import('@/layout/SettingLayout.vue'), // 后台设置布局
+    path: "/setting",
+    component: () => import("@/layout/SettingLayout.vue"), // 后台设置布局
     meta: { requiresAdmin: true },
     children: [
       {
-        path: '',
-        name: 'Setting',
-        component: () => import('@/views/setting/Index.vue'),
+        path: "",
+        name: "Setting",
+        component: () => import("@/views/setting/Index.vue"),
       },
       {
-        path: '/setting/users',
-        name: 'SettingUserList',
-        component: () => import('@/views/setting/UserList.vue'),
+        path: "/setting/users",
+        name: "SettingUserList",
+        component: () => import("@/views/setting/UserList.vue"),
       },
       {
-        path: '/setting/categories',
-        name: 'SettingCategoryList',
-        component: () => import('@/views/setting/CategoryList.vue'),
+        path: "/setting/categories",
+        name: "SettingCategoryList",
+        component: () => import("@/views/setting/CategoryList.vue"),
       },
       {
-        path: '/setting/courses',
-        name: 'SettingCourseList',
-        component: () => import('@/views/setting/CourseList.vue'),
+        path: "/setting/courses",
+        name: "SettingCourseList",
+        component: () => import("@/views/setting/CourseList.vue"),
       },
     ],
   },
@@ -85,21 +85,21 @@ router.beforeEach(async (to) => {
 
   const { token, role } = storeToRefs(userStore);
 
-  if (!token.value && to.name !== 'Register' && to.name !== 'Login') {
-    return { name: 'Login' };
-  } else if (token.value && (to.name === 'Register' || to.name === 'Login')) {
-    return { name: 'Index' };
+  if (!token.value && to.name !== "Register" && to.name !== "Login") {
+    return { name: "Login" };
+  } else if (token.value && (to.name === "Register" || to.name === "Login")) {
+    return { name: "Index" };
   }
 
-  if (to.name === 'Index') {
+  if (to.name === "Index") {
     if (!userStore.name) {
       try {
-        const resData = await request<UserResource>('GET', '/user');
+        const resData = await request<UserResource>("GET", "/user");
         userStore.$patch(resData.data);
       } catch (e) {
         const rd = e as CatchData;
-        ElMessageBox.alert(rd.msg, '温馨提示', {
-          confirmButtonText: '确认',
+        ElMessageBox.alert(rd.msg, "温馨提示", {
+          confirmButtonText: "确认",
         });
       }
     }
@@ -107,7 +107,7 @@ router.beforeEach(async (to) => {
 
   const needsAdmin = to.matched.some((record) => record.meta.requiresAdmin);
   if (needsAdmin && role.value !== UserRole.ADMIN) {
-    return { name: 'Index' };
+    return { name: "Index" };
   }
 
   return true;

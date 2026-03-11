@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ElMessage } from 'element-plus';
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ElMessage } from "element-plus";
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
-import type { CatchData } from '@/lib/js/api';
-import type { CategoryResource } from '@/types/category';
-import type { CourseResource } from '@/types/course';
+import type { CatchData } from "@/lib/js/api";
+import type { CategoryResource } from "@/types/category";
+import type { CourseResource } from "@/types/course";
 
-import { request } from '@/lib/js/api';
-import { getDefaultBgImg } from '@/lib/js/helper';
+import { request } from "@/lib/js/api";
+import { getDefaultBgImg } from "@/lib/js/helper";
 
 /** 分类选项类型 */
 type Option = {
@@ -37,7 +37,7 @@ const segmentedOptions = computed(() => {
     }));
   }
 
-  return [{ label: '全部', value: 0 }, ...baseOptions];
+  return [{ label: "全部", value: 0 }, ...baseOptions];
 });
 
 /**
@@ -45,7 +45,7 @@ const segmentedOptions = computed(() => {
  */
 async function loadCategories() {
   try {
-    const { data } = await request<CategoryResource[]>('GET', `/categories`);
+    const { data } = await request<CategoryResource[]>("GET", `/categories`);
     categories.value = data;
   } catch (e) {
     const { msg } = e as CatchData;
@@ -60,7 +60,7 @@ async function loadCourses(categoryId: number) {
   try {
     loading.value = true;
     const { data } = await request<CourseResource[]>(
-      'GET',
+      "GET",
       `/courses?category_id=${categoryId}`,
     );
     courses.value = data;
@@ -79,7 +79,7 @@ async function loadCourses(categoryId: number) {
  */
 function goToDetail(courseId: number) {
   router.push({
-    name: 'CourseDetail',
+    name: "CourseDetail",
     params: { id: courseId },
   });
 }
@@ -115,13 +115,13 @@ onMounted(async function () {
           alt="封面"
         />
         <div class="description">
-          {{ course.description || '暂无课程描述...' }}
+          {{ course.description || "暂无课程描述..." }}
         </div>
       </div>
 
       <template #footer>
         <span style="font-size: 12px; color: rgb(153 153 153)">
-          {{ course.created_at.split(' ')[0] }}
+          {{ course.created_at.split(" ")[0] }}
         </span>
       </template>
     </el-card>

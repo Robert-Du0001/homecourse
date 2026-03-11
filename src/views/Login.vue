@@ -1,33 +1,33 @@
 <script setup lang="ts">
-import { ElMessage } from 'element-plus';
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ElMessage } from "element-plus";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
-import type { UserResource } from '@/types/user';
-import type { FormInstance, FormRules } from 'element-plus';
+import type { UserResource } from "@/types/user";
+import type { FormInstance, FormRules } from "element-plus";
 
-import { request } from '@/lib/js/api';
-import { useUserStore } from '@/store/user';
+import { request } from "@/lib/js/api";
+import { useUserStore } from "@/store/user";
 
 const router = useRouter();
 const userStore = useUserStore();
 
-let labelPosition = ref<'left' | 'right' | 'top'>('right');
+let labelPosition = ref<"left" | "right" | "top">("right");
 
 onMounted(() => {
   // 相当于Element+规定的xs尺寸
   if (window.innerWidth < 768) {
-    labelPosition.value = 'top';
+    labelPosition.value = "top";
   } else {
-    labelPosition.value = 'right';
+    labelPosition.value = "right";
   }
 
-  window.addEventListener('resize', () => {
+  window.addEventListener("resize", () => {
     // 相当于Element+规定的xs尺寸
     if (window.innerWidth < 768) {
-      labelPosition.value = 'top';
+      labelPosition.value = "top";
     } else {
-      labelPosition.value = 'right';
+      labelPosition.value = "right";
     }
   });
 });
@@ -36,19 +36,19 @@ const formRef = ref<FormInstance>();
 const btnDisabled = ref(false);
 
 const ruleForm = ref({
-  name: '',
-  password: '',
+  name: "",
+  password: "",
   remember: false,
 });
 
 const rules = ref<FormRules>({
   name: [
-    { required: true, message: '账号不能为空', trigger: 'blur' },
-    { max: 10, message: '账号不能超过10个字符', trigger: 'blur' },
+    { required: true, message: "账号不能为空", trigger: "blur" },
+    { max: 10, message: "账号不能超过10个字符", trigger: "blur" },
   ],
   password: [
-    { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 8, max: 20, message: '密码长度需要8位到20位', trigger: 'blur' },
+    { required: true, message: "密码不能为空", trigger: "blur" },
+    { min: 8, max: 20, message: "密码长度需要8位到20位", trigger: "blur" },
   ],
 });
 
@@ -59,14 +59,14 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     if (valid) {
       btnDisabled.value = true;
 
-      request<UserResource>('POST', '/user/token', ruleForm.value)
+      request<UserResource>("POST", "/user/token", ruleForm.value)
         .then(({ msg, data }) => {
           ElMessage.success(msg);
 
           userStore.$patch(data);
           userStore.setToken(data.token);
 
-          router.replace('/');
+          router.replace("/");
         })
         .catch(({ msg }) => {
           ElMessage.error(msg);

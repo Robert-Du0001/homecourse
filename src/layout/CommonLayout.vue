@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useRouter } from "vue-router";
 
-import { useUserStore } from '@/store/user';
+import { useUserStore } from "@/store/user";
 
 const userStore = useUserStore();
 const router = useRouter();
 
 function goToIndex() {
-  router.push({ name: 'Index' });
+  router.push({ name: "Index" });
 }
 
 function goToSetting() {
-  router.push({ name: 'Setting' });
+  router.push({ name: "Setting" });
 }
 
 function logout() {

@@ -12,9 +12,6 @@
     "source.fixAll.prettier": "explicit",
   },
 
-  "typescript.tsdk": "node_modules/typescript/lib", // 强制使用项目本地的 TS 版本
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[go]": {
     "editor.defaultFormatter": "golang.go",
@@ -28,5 +25,6 @@
   "logViewerPlus.filter": {
     "minLevel": "ALL",
     "cleanFormat": false
-  }
+  },
+  "js/ts.tsdk.path": "node_modules\\typescript\\lib"
 }

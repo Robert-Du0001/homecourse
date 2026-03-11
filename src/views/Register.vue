@@ -1,30 +1,30 @@
 <script setup lang="ts">
-import { ElMessage } from 'element-plus';
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ElMessage } from "element-plus";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
-import type { FormInstance, FormRules } from 'element-plus';
+import type { FormInstance, FormRules } from "element-plus";
 
-import { request } from '@/lib/js/api';
+import { request } from "@/lib/js/api";
 
 const router = useRouter();
 
-let labelPosition = ref<'left' | 'right' | 'top'>('right');
+let labelPosition = ref<"left" | "right" | "top">("right");
 
 onMounted(() => {
   // 相当于Element+规定的xs尺寸
   if (window.innerWidth < 768) {
-    labelPosition.value = 'top';
+    labelPosition.value = "top";
   } else {
-    labelPosition.value = 'right';
+    labelPosition.value = "right";
   }
 
-  window.addEventListener('resize', () => {
+  window.addEventListener("resize", () => {
     // 相当于Element+规定的xs尺寸
     if (window.innerWidth < 768) {
-      labelPosition.value = 'top';
+      labelPosition.value = "top";
     } else {
-      labelPosition.value = 'right';
+      labelPosition.value = "right";
     }
   });
 });
@@ -33,23 +33,23 @@ const formRef = ref<FormInstance>();
 const btnDisabled = ref(false);
 
 const ruleForm = ref({
-  name: '',
-  password: '',
-  password_confirm: '',
+  name: "",
+  password: "",
+  password_confirm: "",
 });
 
 const rules = ref<FormRules>({
   name: [
-    { required: true, message: '账号不能为空', trigger: 'blur' },
-    { max: 10, message: '账号不能超过10个字符', trigger: 'blur' },
+    { required: true, message: "账号不能为空", trigger: "blur" },
+    { max: 10, message: "账号不能超过10个字符", trigger: "blur" },
   ],
   password: [
-    { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 8, max: 20, message: '密码长度需要8位到20位', trigger: 'blur' },
+    { required: true, message: "密码不能为空", trigger: "blur" },
+    { min: 8, max: 20, message: "密码长度需要8位到20位", trigger: "blur" },
   ],
   password_confirm: [
-    { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 8, max: 20, message: '密码长度需要8位到20位', trigger: 'blur' },
+    { required: true, message: "密码不能为空", trigger: "blur" },
+    { min: 8, max: 20, message: "密码长度需要8位到20位", trigger: "blur" },
   ],
 });
 
@@ -59,16 +59,16 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   await formEl.validate((valid) => {
     if (valid) {
       if (ruleForm.value.password !== ruleForm.value.password_confirm) {
-        ElMessage.error('两次密码不一致，请重新输入');
+        ElMessage.error("两次密码不一致，请重新输入");
         return;
       }
 
       btnDisabled.value = true;
 
-      request('POST', '/user', ruleForm.value)
+      request("POST", "/user", ruleForm.value)
         .then(({ msg }) => {
           ElMessage.success(msg);
-          router.replace('/login');
+          router.replace("/login");
         })
         .catch(({ msg }) => {
           ElMessage.error(msg);

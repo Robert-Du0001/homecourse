@@ -36,10 +36,7 @@ export default defineConfig(
       'no-var': 'error', // 禁止使用 var
       'no-eval': 'error',
       eqeqeq: 'error', // 必须使用全等
-      'no-console': [
-        process.env.NODE_ENV === 'production' ? 'error' : 'warn',
-        { allow: ['error', 'warn'] },
-      ],
+      'no-console': ['warn', { allow: ['error', 'warn'] }],
 
       '@stylistic/spaced-comment': 'warn',
       '@stylistic/member-delimiter-style': 'warn',

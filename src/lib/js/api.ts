@@ -1,11 +1,11 @@
-import { ElLoading } from 'element-plus';
+import { ElLoading } from "element-plus";
 
-import { useUserStore } from '@/store/user';
+import { useUserStore } from "@/store/user";
 
 /**
  * 发送请求允许的方法
  */
-export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
+export type Method = "GET" | "POST" | "PUT" | "DELETE";
 
 /**
  * API响应结果
@@ -43,15 +43,15 @@ export type CatchData = {
  * 封装 Fetch 请求
  */
 export async function request<T = null>(
-  method: Method | 'DELETE',
+  method: Method | "DELETE",
   url: string,
   data?: object,
 ) {
   return new Promise<ApiResponse<T> & { status: string }>((resolve, reject) => {
     const loading = ElLoading.service({
       lock: true,
-      text: '加载中',
-      background: 'rgba(0, 0, 0, 0.7)',
+      text: "加载中",
+      background: "rgba(0, 0, 0, 0.7)",
     });
 
     const userStore = useUserStore();
@@ -59,7 +59,7 @@ export async function request<T = null>(
     const options: RequestInit = {
       method,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...(userStore.token
           ? { Authorization: `Bearer ${userStore.token}` }
           : {}),
@@ -67,17 +67,17 @@ export async function request<T = null>(
     };
 
     // 只有非 GET 请求才添加 body
-    if (method !== 'GET' && data) {
+    if (method !== "GET" && data) {
       options.body = JSON.stringify(data);
     }
 
-    fetch('/api' + url, options)
+    fetch("/api" + url, options)
       .then((res) => {
         if (res.status === 401) {
           userStore.logout();
           reject({
             status: res.status,
-            msg: '无请求权限！',
+            msg: "无请求权限！",
             data,
           });
         } else {
@@ -88,24 +88,24 @@ export async function request<T = null>(
               const { msg, data } = resData;
 
               if (res.status === 200) {
-                resolve({ status: 'ok', msg, data });
+                resolve({ status: "ok", msg, data });
               } else {
                 reject({
                   status: res.status,
-                  msg: msg || '发生错误！',
+                  msg: msg || "发生错误！",
                   data,
                 });
               }
             })
             .catch((err) => {
-              console.error('解析json数据失败:', err);
-              reject({ msg: '解析json数据失败' });
+              console.error("解析json数据失败:", err);
+              reject({ msg: "解析json数据失败" });
             });
         }
       })
       .catch((err) => {
-        console.error('发起请求失败:', err);
-        reject({ msg: '发起请求失败' });
+        console.error("发起请求失败:", err);
+        reject({ msg: "发起请求失败" });
       })
       .finally(() => {
         loading.close();
