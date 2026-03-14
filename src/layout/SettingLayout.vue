@@ -156,4 +156,27 @@ function goToIndex() {
 :deep(.el-scrollbar__view) {
   height: 100%;
 }
+
+/* 表格拖拽 */
+// 拖拽样式
+:deep(.el-table__row) {
+  .el-table__cell:has(.drag-handler) {
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      cursor: move;
+      background-color: rgb(64 158 255 / 10%) !important;
+
+      .drag-handler {
+        color: rgb(64 158 255);
+      }
+    }
+  }
+}
+
+// 拖拽时的影子样式保持
+.sortable-ghost {
+  outline: 2px dashed rgb(64 158 255); /* 增加虚线框增强交互感 */
+  background-color: rgb(245 247 250 / 60%) !important;
+}
 </style>

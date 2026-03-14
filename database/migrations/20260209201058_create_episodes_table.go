@@ -19,6 +19,7 @@ func (r *M20260209201058CreateEpisodesTable) Up() error {
 		return facades.Schema().Create("episodes", func(table schema.Blueprint) {
 			table.ID()                                   // 自增 ID
 			table.BigInteger("course_id").Default(0)     // 所属课程 ID
+			table.BigInteger("group_id").Default(0)      // 所属分组 ID
 			table.String("title")                        // 单集标题（如：01. 环境搭建）
 			table.String("file_path")                    // 视频文件的路径
 			table.Integer("sort").Default(0)             // 排序序号

@@ -21,7 +21,6 @@ func (r *M20260209200954CreateCategoriesTable) Up() error {
 			table.String("name")             // 分类名称 (如: 计算机科学)
 			table.Boolean("is_default")      // 是否为默认分类（文件会默认扫描到此分类中）
 			table.Integer("sort").Default(0) // 排序
-			table.TimestampsTz()
 		})
 	}
 

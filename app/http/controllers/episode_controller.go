@@ -117,7 +117,7 @@ func (r *EpisodeController) Scan(ctx http.Context) http.Response {
 		if len(parts) >= 2 {
 			scannedEpisodes = append(scannedEpisodes, tempEpisode{
 				Title:      episodeName,
-				FilePath:   courseName + "/" + episodeName,
+				FilePath:   "/courses/" + courseName + "/" + episodeName,
 				CourseName: courseName,
 			})
 		}
@@ -150,11 +150,12 @@ func (r *EpisodeController) Scan(ctx http.Context) http.Response {
 	}
 	var defaultCategory category
 	if err := facades.Orm().Query().Where("is_default", true).FirstOrFail(&defaultCategory); err != nil {
-		if errors.Is(err, errors.OrmRecordNotFound) {
-			return response.BadRequest(ctx, "默认课程分类不存在", nil)
+		if !errors.Is(err, errors.OrmRecordNotFound) {
+			return response.InternalServerError(ctx, "E2", err)
 		}
 
-		return response.InternalServerError(ctx, "E2", err)
+		// 如果默认课程分类不存在，则无分类
+		defaultCategory.ID = 0
 	}
 
 	// 找出需要新创建的课程
@@ -237,5 +238,5 @@ func (r *EpisodeController) Play(ctx http.Context) http.Response {
 		return response.InternalServerError(ctx, "E3", err)
 	}
 
-	return ctx.Response().File(facades.Storage().Disk("course").Path(episode.FilePath))
+	return ctx.Response().File(facades.Storage().Path(episode.FilePath))
 }

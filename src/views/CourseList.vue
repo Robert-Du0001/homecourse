@@ -22,8 +22,6 @@ const router = useRouter();
 const categories = ref<CategoryResource[]>();
 /** 课程列表 */
 const courses = ref<CourseResource[]>([]);
-/** 加载课程列表状态 */
-const loading = ref(false);
 /** 当前选中的课程分类 */
 const activeCategoryId = ref(0);
 
@@ -58,7 +56,6 @@ async function loadCategories() {
  */
 async function loadCourses(categoryId: number) {
   try {
-    loading.value = true;
     const { data } = await request<CourseResource[]>(
       "GET",
       `/courses?category_id=${categoryId}`,
@@ -68,8 +65,6 @@ async function loadCourses(categoryId: number) {
   } catch (e) {
     const { msg } = e as CatchData;
     ElMessage.error(msg);
-  } finally {
-    loading.value = false;
   }
 }
 
@@ -92,7 +87,7 @@ onMounted(async function () {
 
 <template>
   <!-- 分类筛选 -->
-  <div class="filter-container">
+  <div v-if="segmentedOptions.length > 1" class="filter-container">
     <el-segmented
       v-model="activeCategoryId"
       :options="segmentedOptions"
@@ -101,7 +96,7 @@ onMounted(async function () {
     />
   </div>
 
-  <div v-loading="loading" class="course-list">
+  <div v-if="courses.length" class="course-list">
     <el-card v-for="(course, i) in courses" :key="i" class="course-card">
       <template #header>
         <div class="card-header">
@@ -110,9 +105,11 @@ onMounted(async function () {
       </template>
 
       <div class="content" @click="goToDetail(course.id)">
-        <img
+        <el-image
+          class="cover"
           :src="course.cover_path || getDefaultBgImg(course.id)"
           alt="封面"
+          fit="contain"
         />
         <div class="description">
           {{ course.description || "暂无课程描述..." }}
@@ -126,6 +123,7 @@ onMounted(async function () {
       </template>
     </el-card>
   </div>
+  <el-empty v-else description="暂无课程" />
 </template>
 
 <style scoped lang="scss">
@@ -172,7 +170,9 @@ onMounted(async function () {
   // 核心：创建 5 列，每列等分
   grid-template-columns: repeat(5, 1fr);
   gap: 20px;
+  height: calc(100vh - 180px);
   padding: 20px;
+  overflow-y: auto;
 
   // 响应式：根据屏幕宽度调整列数
   @media (width <= 1400px) {
@@ -194,12 +194,13 @@ onMounted(async function () {
   .course-card {
     display: flex;
     flex-direction: column;
-    height: 100%; // 让卡片充满 Grid 单元格高度
+    height: 360px; // 让卡片充满 Grid 单元格高度
 
     :deep(.el-card__body) {
       display: flex;
       flex: 1; // 让 card body 自动撑开
       flex-direction: column;
+      overflow: hidden;
     }
 
     .content {
@@ -208,10 +209,9 @@ onMounted(async function () {
       flex-direction: column;
       cursor: pointer;
 
-      img {
+      .cover {
         width: 100%;
         aspect-ratio: 16 / 9; // 强制图片比例统一，防止高度抖动
-        object-fit: cover;
       }
 
       .description {
@@ -220,5 +220,9 @@ onMounted(async function () {
       }
     }
   }
+}
+
+.el-empty {
+  height: calc(100vh - 180px);
 }
 </style>

@@ -34,7 +34,7 @@ onMounted(async () => {
     autoplay: true,
     screenshot: true,
     video: {
-      url: `/media/${episodeId}`,
+      url: `/media/videos/${episodeId}`,
       type: "auto",
     },
   });

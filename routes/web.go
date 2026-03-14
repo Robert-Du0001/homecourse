@@ -13,7 +13,10 @@ func Web() {
 	facades.Route().Static("img", "public/img")
 	facades.Route().StaticFile("favicon.svg", "public/favicon.svg")
 
-	facades.Route().Get("/media/{id}", controllers.NewEpisodeController().Play)
+	// 课程封面
+	facades.Route().Get("covers/{path}", controllers.NewCourseController().ShowCover)
+	// 课程视频
+	facades.Route().Get("videos/{id}", controllers.NewEpisodeController().Play)
 
 	facades.Route().Fallback(func(ctx http.Context) http.Response {
 		return ctx.Response().File("public/index.html")

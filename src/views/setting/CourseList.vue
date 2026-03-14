@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { Edit, Delete, Plus } from "@element-plus/icons-vue";
+import {
+  Edit,
+  Delete,
+  Plus,
+  Rank,
+  Files,
+  Document,
+} from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { object, string } from "yup";
 
 import type { CatchData } from "@/lib/js/api";
@@ -12,7 +20,10 @@ import type { ValidationError } from "yup";
 
 import { request } from "@/lib/js/api";
 import { getDefaultBgImg } from "@/lib/js/helper";
+import { TableSortable } from "@/lib/js/tableSortable";
 
+/** 表格排序实例 */
+let sortable: TableSortable | null = null;
 /** 分类数据 */
 const categories = ref<CategoryResource[]>();
 /** 课程数据 */
@@ -26,7 +37,6 @@ const dialogVisible = ref(false);
  * 'edit' 编辑模式
  */
 const dialogMode = ref("add");
-
 /** 添加/编辑课程表单 */
 const courseForm = ref({
   /** 课程分类ID */
@@ -38,9 +48,10 @@ const courseForm = ref({
   /** 课程简介 */
   description: "",
   /** 课程封面 */
-  cover_path: "",
+  cover_file: null as File | null,
+  /** 课程封面路径，用于预览 */
+  cover_preview: "",
 });
-
 /** 课程表单验证规则 */
 const courseSchema = object({
   /** 课程标题 */
@@ -50,6 +61,8 @@ const courseSchema = object({
   /** 课程简介 */
   description: string().max(200, "课程简介不能超过200个字符"),
 });
+/** 路由实例 */
+const router = useRouter();
 
 /** 分类查找映射表 { id: name } */
 const categoryMap = computed(() => {
@@ -78,18 +91,26 @@ async function scan() {
 async function loadCourses() {
   try {
     const { data } = await request<CategoryResource[]>("GET", `/categories`);
+
     categories.value = data;
+
+    // 在最前面加个未分类
+    categories.value.unshift({
+      id: 0,
+      name: "未分类",
+      is_default: false,
+      sort: 0,
+      created_at: "",
+    });
   } catch (e) {
     const { msg } = e as CatchData;
     ElMessage.error(msg);
   }
 
+  // 获取课程数据
   try {
-    const { data } = await request<{
-      courses: CourseResource[];
-      total: number;
-    }>("GET", `/admin/courses?page=1&limit=10`);
-    courses.value = data.courses;
+    const { data } = await request<CourseResource[]>("GET", `/admin/courses`);
+    courses.value = data;
   } catch (e) {
     const { msg } = e as CatchData;
     ElMessage.error(msg);
@@ -129,7 +150,8 @@ function addCourse() {
     category_id: categories.value![0]!.id,
     title: "",
     description: "",
-    cover_path: "",
+    cover_file: null,
+    cover_preview: "",
   };
 }
 
@@ -137,9 +159,8 @@ function addCourse() {
  * 设置课程
  */
 async function setCourse() {
-  let course;
   try {
-    course = await courseSchema.validate(courseForm.value);
+    await courseSchema.validate(courseForm.value);
   } catch (e) {
     const { message } = e as ValidationError;
     ElMessage.error(message);
@@ -152,7 +173,17 @@ async function setCourse() {
       dialogMode.value === "add"
         ? "/admin/courses"
         : `/admin/courses/${courseForm.value.id}`;
-    const { msg } = await request(apiMethod, api, course);
+
+    // 处理成 FormData
+    const formData = new FormData();
+    if (courseForm.value.cover_file) {
+      formData.append("cover_file", courseForm.value.cover_file);
+    }
+    formData.append("title", courseForm.value.title);
+    formData.append("category_id", String(courseForm.value.category_id));
+    formData.append("description", courseForm.value.description);
+
+    const { msg } = await request(apiMethod, api, formData);
     ElMessage.success(msg);
     dialogVisible.value = false;
     await loadCourses();
@@ -173,7 +204,8 @@ async function editCourse(course: CourseResource) {
     category_id: course.category_id,
     title: course.title,
     description: course.description,
-    cover_path: course.cover_path,
+    cover_file: null,
+    cover_preview: course.cover_path,
   };
   dialogVisible.value = true;
 }
@@ -182,14 +214,12 @@ async function editCourse(course: CourseResource) {
  * 处理封面选择
  */
 function handleCoverChange(file: UploadFile) {
-  console.log(file);
-
   if (!file.raw) {
     ElMessage.error("请选择封面文件!");
     return;
   }
 
-  // 1. 简单的文件类型校验
+  // 简单的文件类型校验
   const isValid =
     file.raw.type === "image/jpeg" || file.raw.type === "image/png";
   if (!isValid) {
@@ -197,11 +227,46 @@ function handleCoverChange(file: UploadFile) {
     return;
   }
 
-  // 3. 存储文件对象，准备上传
-  // courseForm.value.cover_path = file.raw;
+  courseForm.value.cover_file = file.raw;
+
+  // 生成本地预览图 URL
+  if (courseForm.value.cover_preview) {
+    URL.revokeObjectURL(courseForm.value.cover_preview); // 释放旧内存
+  }
+  courseForm.value.cover_preview = URL.createObjectURL(file.raw);
 }
 
-onMounted(loadCourses);
+/**
+ * 定义排序后的逻辑
+ * @param newIndex
+ * @param oldIndex
+ */
+async function handleSort(newIndex: number, oldIndex: number) {
+  if (!courses.value || courses.value?.length === 0) return;
+
+  // 1. 内存同步
+  const targetRow = courses.value.splice(oldIndex, 1)[0];
+  courses.value.splice(newIndex, 0, targetRow!);
+
+  // 2. 持久化
+  try {
+    const ids = courses.value.map((item) => item.id);
+    const { msg } = await request("PUT", "/admin/courses/sort", { ids });
+    ElMessage.success(msg);
+  } catch (e) {
+    const { msg } = e as CatchData;
+    ElMessage.error(msg);
+    await loadCourses(); // 失败回滚
+  }
+}
+
+onMounted(function () {
+  // 初始化排序
+  sortable = new TableSortable(".el-table__body-wrapper tbody", handleSort);
+  sortable.init();
+
+  loadCourses();
+});
 </script>
 
 <template>
@@ -229,10 +294,11 @@ onMounted(loadCourses);
           :show-file-list="false"
           :on-change="handleCoverChange"
         >
-          <img
-            v-if="courseForm.cover_path"
-            :src="courseForm.cover_path"
-            class="cover-img"
+          <el-image
+            v-if="courseForm.cover_preview"
+            style="width: 100%; height: 100%"
+            :src="courseForm.cover_preview"
+            fit="contain"
           />
           <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
           <template #tip>
@@ -291,8 +357,16 @@ onMounted(loadCourses);
     :border="true"
     height="600"
     style="width: 100%"
+    row-key="id"
   >
-    <el-table-column prop="id" label="ID" width="80" />
+    <el-table-column width="50" align="center">
+      <template #default>
+        <div class="drag-handler">
+          <el-icon><Rank /></el-icon>
+        </div>
+      </template>
+    </el-table-column>
+
     <el-table-column label="封面" width="100">
       <template #default="{ row }: { row: CourseResource }">
         <el-image
@@ -312,18 +386,38 @@ onMounted(loadCourses);
     <el-table-column prop="created_at" label="创建日期" />
     <el-table-column fixed="right" label="操作" min-width="120">
       <template #default="{ row }: { row: CourseResource }">
-        <el-button
-          type="primary"
-          :icon="Edit"
-          circle
-          @click="editCourse(row)"
-        />
-        <el-button
-          type="danger"
-          :icon="Delete"
-          circle
-          @click="delCourse(row.id)"
-        ></el-button>
+        <el-tooltip content="编辑" placement="top">
+          <el-button
+            type="primary"
+            :icon="Edit"
+            circle
+            @click="editCourse(row)"
+          />
+        </el-tooltip>
+        <el-tooltip content="剧集分组管理" placement="top">
+          <el-button
+            type="warning"
+            :icon="Files"
+            circle
+            @click="router.push('/setting/courses/groups')"
+          />
+        </el-tooltip>
+        <el-tooltip content="剧集管理" placement="top">
+          <el-button
+            type="success"
+            :icon="Document"
+            circle
+            @click="router.push('/setting/courses/episodes')"
+          />
+        </el-tooltip>
+        <el-tooltip content="删除" placement="top">
+          <el-button
+            type="danger"
+            :icon="Delete"
+            circle
+            @click="delCourse(row.id)"
+          />
+        </el-tooltip>
       </template>
     </el-table-column>
   </el-table>
@@ -357,12 +451,6 @@ onMounted(loadCourses);
         border-color: var(--el-color-primary);
       }
     }
-  }
-
-  .cover-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
   }
 
   .cover-uploader-icon {

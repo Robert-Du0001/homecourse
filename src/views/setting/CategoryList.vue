@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { Edit, Delete, Rank } from "@element-plus/icons-vue";
+import { Edit, Delete, Rank, QuestionFilled } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import Sortable from "sortablejs";
-import { onMounted, ref, nextTick } from "vue";
+import { onMounted, ref } from "vue";
 import { object, string } from "yup";
 
 import type { CatchData } from "@/lib/js/api";
@@ -10,10 +9,12 @@ import type { CategoryResource } from "@/types/category";
 import type { ValidationError } from "yup";
 
 import { request } from "@/lib/js/api";
+import { TableSortable } from "@/lib/js/tableSortable";
 
+/** 表格排序实例 */
+let sortable: TableSortable | null = null;
 /** 分类数据 */
 const categories = ref<CategoryResource[]>();
-
 /** 是否显示添加/编辑课程分类对话框 */
 const dialogVisible = ref(false);
 /**
@@ -23,7 +24,6 @@ const dialogVisible = ref(false);
  * 'edit' 编辑模式
  */
 const dialogMode = ref("add");
-
 /** 添加/编辑分类表单 */
 const categoryForm = ref({
   /** 课程分类ID */
@@ -38,62 +38,28 @@ const categorySchema = object({
   name: string().required("请输入分类名").max(10, "分类名不能超过10个字符"),
 });
 
-/** 表格 DOM 引用 */
-const tableRef = ref();
-
-/** 排序实例 */
-let sortableInstance: Sortable | null = null;
-
 /**
- * 初始化拖拽排序
+ * 定义排序后的逻辑
+ * @param newIndex
+ * @param oldIndex
  */
-function initDragSort() {
-  // Element Plus 的表格内容在 .el-table__body-wrapper tbody 中
-  const el = tableRef.value?.$el.querySelector(".el-table__body-wrapper tbody");
+async function handleSort(newIndex: number, oldIndex: number) {
+  if (!categories.value || categories.value?.length === 0) return;
 
-  if (!el) return;
+  // 1. 内存同步
+  const targetRow = categories.value.splice(oldIndex, 1)[0];
+  categories.value.splice(newIndex, 0, targetRow!);
 
-  // 如果已经存在实例，先销毁，防止重复绑定和 DOM 冲突
-  if (sortableInstance) {
-    sortableInstance.destroy();
+  // 2. 持久化
+  try {
+    const ids = categories.value.map((item) => item.id);
+    const { msg } = await request("PUT", "/admin/categories/sort", { ids });
+    ElMessage.success(msg);
+  } catch (e) {
+    const { msg } = e as CatchData;
+    ElMessage.error(msg);
+    await loadCategories(); // 失败回滚
   }
-
-  sortableInstance = Sortable.create(el, {
-    animation: 150,
-    handle: ".drag-handler", // 建议设置一个拖拽手柄，防止点击其他按钮时误触发
-    onEnd: async ({ newIndex, oldIndex }) => {
-      if (
-        newIndex === oldIndex ||
-        newIndex === undefined ||
-        oldIndex === undefined
-      )
-        return;
-
-      if (!categories.value) return;
-
-      // 2. 取出当前行
-      const rows = categories.value.splice(oldIndex, 1);
-      if (rows.length === 0) return;
-
-      const currRow = rows[0]!;
-
-      // 3. 插入新位置 (此时 currRow 已经是确定的 CategoryResource 类型)
-      categories.value.splice(newIndex, 0, currRow);
-
-      // 4. 调用后端接口持久化排序
-      // 这里的逻辑取决于你后端接口的设计，通常是发送当前 ID 列表或 newIndex
-      try {
-        const ids = categories.value!.map((item) => item.id);
-        const { msg } = await request("PUT", "/admin/categories/sort", { ids });
-        ElMessage.success(msg);
-      } catch (e) {
-        const { msg } = e as CatchData;
-        ElMessage.error(msg);
-        // 如果后端失败，重新调用获取接口回滚前端顺序
-        await loadCategories();
-      }
-    },
-  });
 }
 
 /**
@@ -103,10 +69,6 @@ async function loadCategories() {
   try {
     const { data } = await request<CategoryResource[]>("GET", `/categories`);
     categories.value = data;
-
-    // 必须在 DOM 更新后初始化拖拽
-    await nextTick();
-    initDragSort();
   } catch (e) {
     const { msg } = e as CatchData;
     ElMessage.error(msg);
@@ -207,7 +169,13 @@ async function editCategory(category: CategoryResource) {
   dialogVisible.value = true;
 }
 
-onMounted(loadCategories);
+onMounted(() => {
+  // 初始化排序
+  sortable = new TableSortable(".el-table__body-wrapper tbody", handleSort);
+  sortable.init();
+
+  loadCategories();
+});
 </script>
 
 <template>
@@ -261,7 +229,13 @@ onMounted(loadCategories);
     </el-table-column>
 
     <el-table-column prop="name" label="分类名" width="580" />
-    <el-table-column label="默认分类" width="180">
+    <el-table-column width="180">
+      <template #header>
+        默认分类
+        <el-tooltip content="扫描课程时，将自动添加到此分类中" placement="top">
+          <el-icon><QuestionFilled /></el-icon>
+        </el-tooltip>
+      </template>
       <template #default="{ row }: { row: CategoryResource }">
         <el-switch
           v-model="row.is_default"
@@ -273,18 +247,22 @@ onMounted(loadCategories);
     <el-table-column prop="created_at" label="创建日期" />
     <el-table-column fixed="right" label="操作" min-width="120">
       <template #default="{ row }: { row: CategoryResource }">
-        <el-button
-          type="primary"
-          :icon="Edit"
-          circle
-          @click="editCategory(row)"
-        />
-        <el-button
-          type="danger"
-          :icon="Delete"
-          circle
-          @click="delCategory(row.id)"
-        />
+        <el-tooltip content="编辑" placement="top">
+          <el-button
+            type="primary"
+            :icon="Edit"
+            circle
+            @click="editCategory(row)"
+          />
+        </el-tooltip>
+        <el-tooltip content="删除" placement="top">
+          <el-button
+            type="danger"
+            :icon="Delete"
+            circle
+            @click="delCategory(row.id)"
+          />
+        </el-tooltip>
       </template>
     </el-table-column>
   </el-table>

@@ -1,6 +1,8 @@
 package models
 
-import "github.com/goravel/framework/database/orm"
+import (
+	"github.com/goravel/framework/database/orm"
+)
 
 type Course struct {
 	orm.Model

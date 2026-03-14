@@ -1,10 +1,7 @@
 package models
 
-import "github.com/goravel/framework/database/orm"
-
 type Category struct {
-	orm.Model
-
+	ID        uint   `gorm:"primaryKey" json:"id"`
 	Name      string `json:"name"`
 	IsDefault bool   `json:"is_default"`
 	Sort      uint   `json:"sort"`

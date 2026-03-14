@@ -59,7 +59,6 @@ export async function request<T = null>(
     const options: RequestInit = {
       method,
       headers: {
-        "Content-Type": "application/json",
         ...(userStore.token
           ? { Authorization: `Bearer ${userStore.token}` }
           : {}),
@@ -68,7 +67,16 @@ export async function request<T = null>(
 
     // 只有非 GET 请求才添加 body
     if (method !== "GET" && data) {
-      options.body = JSON.stringify(data);
+      if (data instanceof FormData) {
+        options.body = data;
+      } else {
+        // 否则就是json数据
+        options.headers = {
+          ...options.headers,
+          "Content-Type": "application/json",
+        };
+        options.body = JSON.stringify(data);
+      }
     }
 
     fetch("/api" + url, options)
