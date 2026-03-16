@@ -21,6 +21,11 @@ func (r *M20260314170959CreateGroupsTable) Up() error {
 			table.BigInteger("course_id").Default(0) // 所属课程 ID
 			table.String("name")                     // 分组名称
 			table.Integer("sort").Default(0)         // 排序
+			table.TimestampsTz()
+
+			table.Foreign("course_id").References("id").On("courses").CascadeOnDelete()
+
+			table.Index("course_id")
 		})
 	}
 

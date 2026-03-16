@@ -270,7 +270,7 @@ onMounted(function () {
 </script>
 
 <template>
-  <el-row class="opration-panel" justify="end">
+  <el-row class="header-panel" justify="end">
     <el-col class="btns" :span="6" justify="end">
       <el-button type="primary" @click="addCourse">添加课程</el-button>
       <el-button type="primary" @click="scan">扫描文件</el-button>
@@ -358,6 +358,7 @@ onMounted(function () {
     height="600"
     style="width: 100%"
     row-key="id"
+    empty-text="暂无课程"
   >
     <el-table-column width="50" align="center">
       <template #default>
@@ -399,7 +400,7 @@ onMounted(function () {
             type="warning"
             :icon="Files"
             circle
-            @click="router.push('/setting/courses/groups')"
+            @click="router.push(`/setting/courses/${row.id}/groups`)"
           />
         </el-tooltip>
         <el-tooltip content="剧集管理" placement="top">
@@ -407,7 +408,7 @@ onMounted(function () {
             type="success"
             :icon="Document"
             circle
-            @click="router.push('/setting/courses/episodes')"
+            @click="router.push(`/setting/courses/${row.id}/episodes`)"
           />
         </el-tooltip>
         <el-tooltip content="删除" placement="top">
@@ -424,11 +425,19 @@ onMounted(function () {
 </template>
 
 <style scoped lang="scss">
-.opration-panel {
-  margin-bottom: 10px;
+// 拖拽样式
+:deep(.el-table__row) {
+  .el-table__cell:has(.drag-handler) {
+    transition: background-color 0.2s ease;
 
-  .btns {
-    text-align: right;
+    &:hover {
+      cursor: move;
+      background-color: rgb(64 158 255 / 10%) !important;
+
+      .drag-handler {
+        color: rgb(64 158 255);
+      }
+    }
   }
 }
 

@@ -31,7 +31,6 @@ const categoryForm = ref({
   /** 分类名 */
   name: "",
 });
-
 /** 分类表单验证规则 */
 const categorySchema = object({
   /** 分类名 */
@@ -179,7 +178,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <el-row class="opration-panel" justify="end">
+  <el-row class="header-panel" justify="end">
     <el-col class="btns" :span="6" justify="end">
       <el-button type="primary" @click="addCategory">添加分类</el-button>
     </el-col>
@@ -219,6 +218,7 @@ onMounted(() => {
     height="600"
     style="width: 100%"
     row-key="id"
+    empty-text="暂无课程分类"
   >
     <el-table-column width="50" align="center">
       <template #default>
@@ -269,14 +269,6 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.opration-panel {
-  margin-bottom: 10px;
-
-  .btns {
-    text-align: right;
-  }
-}
-
 // 拖拽样式
 :deep(.el-table__row) {
   .el-table__cell:has(.drag-handler) {
@@ -291,11 +283,5 @@ onMounted(() => {
       }
     }
   }
-}
-
-/* 拖拽时的影子样式保持 */
-.sortable-ghost {
-  outline: 2px dashed rgb(64 158 255); /* 增加虚线框增强交互感 */
-  background-color: rgb(245 247 250 / 60%) !important;
 }
 </style>

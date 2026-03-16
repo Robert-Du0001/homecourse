@@ -1,7 +1,14 @@
 package models
 
+import (
+	"github.com/goravel/framework/database/orm"
+)
+
 type Group struct {
-	ID   uint   `gorm:"primaryKey" json:"id"`
-	Name string `json:"name"`
-	Sort uint   `json:"sort"`
+	orm.Model
+
+	ID       uint   `gorm:"primaryKey" json:"id"`
+	CourseID uint   `json:"course_id" form:"course_id"`
+	Name     string `json:"name"`
+	Sort     uint   `json:"sort"`
 }

@@ -65,6 +65,11 @@ const routes = [
         name: "SettingCourseList",
         component: () => import("@/views/setting/CourseList.vue"),
       },
+      {
+        path: "/setting/courses/:id/groups",
+        name: "SettingGroupList",
+        component: () => import("@/views/setting/GroupList.vue"),
+      },
     ],
   },
 ];

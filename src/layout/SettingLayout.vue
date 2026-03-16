@@ -86,7 +86,7 @@ function goToIndex() {
   </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss">
 .admin-header {
   background-color: rgb(255 255 255);
   border-bottom: 1px solid var(--el-border-color-light);
@@ -157,26 +157,18 @@ function goToIndex() {
   height: 100%;
 }
 
-/* 表格拖拽 */
-// 拖拽样式
-:deep(.el-table__row) {
-  .el-table__cell:has(.drag-handler) {
-    transition: background-color 0.2s ease;
-
-    &:hover {
-      cursor: move;
-      background-color: rgb(64 158 255 / 10%) !important;
-
-      .drag-handler {
-        color: rgb(64 158 255);
-      }
-    }
-  }
-}
-
-// 拖拽时的影子样式保持
+/* 表格拖拽时的影子样式保持 */
 .sortable-ghost {
   outline: 2px dashed rgb(64 158 255); /* 增加虚线框增强交互感 */
   background-color: rgb(245 247 250 / 60%) !important;
+}
+
+/* 表格操作栏统一样式 */
+.header-panel {
+  margin-bottom: 10px;
+
+  .btns {
+    text-align: right;
+  }
 }
 </style>

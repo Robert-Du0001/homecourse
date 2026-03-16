@@ -12,20 +12,12 @@ export enum UserRole {
  * 用户数据
  */
 export type UserResource = {
-  /**
-   * 用户ID
-   */
+  /** 用户ID */
   id: number;
-  /**
-   * 用户名
-   */
+  /** 用户名 */
   name: string;
-  /**
-   * 角色
-   */
+  /** 角色 */
   role: UserRole;
-  /**
-   * JWT登录凭证
-   */
+  /** JWT登录凭证 */
   token: string;
 };

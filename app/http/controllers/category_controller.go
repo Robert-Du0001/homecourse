@@ -171,8 +171,6 @@ func (r *CategoryController) Update(ctx http.Context) http.Response {
 
 // 修改分类排序
 func (r *CategoryController) UpdateSort(ctx http.Context) http.Response {
-	fmt.Println(ctx.Request().All())
-
 	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
 		"ids": "required",
 	})

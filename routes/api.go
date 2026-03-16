@@ -12,6 +12,7 @@ func Api() {
 	userController := controllers.NewUserController()
 	categoryController := controllers.NewCategoryController()
 	courseController := controllers.NewCourseController()
+	groupController := controllers.NewGroupController()
 	episodeController := controllers.NewEpisodeController()
 
 	facades.Route().Prefix("api").Group(func(router route.Router) {
@@ -27,6 +28,9 @@ func Api() {
 			// 课程相关路由
 			router.Get("courses", courseController.Index)
 			router.Get("courses/{id}", courseController.Show)
+
+			// 剧集分组相关路由
+			router.Get("courses/{id}/groups", groupController.Index)
 
 			// 剧集相关路由
 			router.Get("episodes", episodeController.Index)
@@ -50,6 +54,12 @@ func Api() {
 				router.Put("courses/{id}", courseController.Update)
 				router.Put("courses/sort", courseController.UpdateSort)
 				router.Delete("courses/{id}", courseController.Destroy)
+
+				// 剧集分组相关路由
+				router.Post("groups", groupController.Store)
+				router.Put("groups/{id}", groupController.Update)
+				router.Delete("groups/{id}", groupController.Destroy)
+				router.Put("groups/sort", groupController.UpdateSort)
 
 				// 剧集相关路由
 				router.Put("episodes/scan", episodeController.Scan)
