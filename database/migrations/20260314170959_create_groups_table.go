@@ -20,6 +20,7 @@ func (r *M20260314170959CreateGroupsTable) Up() error {
 			table.ID()                               // 自增 ID
 			table.BigInteger("course_id").Default(0) // 所属课程 ID
 			table.String("name")                     // 分组名称
+			table.Boolean("is_default")              // 是否为默认分组（文件会默认扫描到此分组中）
 			table.Integer("sort").Default(0)         // 排序
 			table.TimestampsTz()
 

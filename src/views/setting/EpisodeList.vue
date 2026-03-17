@@ -1,28 +1,19 @@
 <script setup lang="ts">
-import {
-  ArrowRight,
-  Delete,
-  Edit,
-  Rank,
-  QuestionFilled,
-  Document,
-} from "@element-plus/icons-vue";
+import { ArrowRight, Delete, Edit, Rank } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { object, string, ValidationError } from "yup";
 
-import type { GroupResource } from "@/types/group";
+import type { EpisodesResource } from "@/types/episode";
 
 import { request, type CatchData } from "@/lib/js/api";
 import { TableSortable } from "@/lib/js/tableSortable";
 
 /** 当前路由对象 */
 const route = useRoute();
-/** 路由实例 */
-const router = useRouter();
 /** 剧集分组列表 */
-const groups = ref<GroupResource[]>([]);
+const episodes = ref<EpisodesResource[]>([]);
 /** 是否显示添加/编辑课程分组对话框 */
 const dialogVisible = ref(false);
 /**
@@ -33,16 +24,16 @@ const dialogVisible = ref(false);
  */
 const dialogMode = ref("add");
 /** 添加/编辑分组表单 */
-const groupForm = ref({
-  /** 课程分组ID */
+const episodeForm = ref({
+  /** 剧集ID */
   id: 0,
-  /** 所属的课程ID */
-  course_id: route.params.id,
-  /** 分组名 */
-  name: "",
+  /** 所属的剧集分组ID */
+  group_id: route.params.group_id,
+  /** 剧集标题 */
+  title: "",
 });
 /** 分组表单验证规则 */
-const groupSchema = object({
+const episodeSchema = object({
   /** 分组名 */
   name: string().required("请输入分组名").max(10, "分组名不能超过10个字符"),
 });
@@ -52,13 +43,13 @@ let sortable: TableSortable | null = null;
 /**
  * 获取课程分组数据
  */
-async function loadGroups() {
+async function loadEpisodes() {
   try {
-    const { data } = await request<GroupResource[]>(
+    const { data } = await request<EpisodesResource[]>(
       "GET",
-      `/courses/${route.params.id}/groups`,
+      `/groups/${route.params.group_id}/episodes`,
     );
-    groups.value = data;
+    episodes.value = data;
   } catch (e) {
     const { msg } = e as CatchData;
     ElMessage.error(msg);
@@ -68,10 +59,10 @@ async function loadGroups() {
 /**
  * 设置课程分类
  */
-async function setGroup() {
+async function setEpisode() {
   let category;
   try {
-    category = await groupSchema.validate(groupForm.value);
+    category = await episodeSchema.validate(episodeForm.value);
   } catch (e) {
     const { message } = e as ValidationError;
     ElMessage.error(message);
@@ -82,12 +73,12 @@ async function setGroup() {
     const apiMethod = dialogMode.value === "add" ? "POST" : "PUT";
     const api =
       dialogMode.value === "add"
-        ? `/admin/groups`
-        : `/admin/groups/${groupForm.value.id}`;
+        ? `/admin/episodes`
+        : `/admin/episodes/${episodeForm.value.id}`;
     const { msg } = await request(apiMethod, api, category);
     ElMessage.success(msg);
     dialogVisible.value = false;
-    await loadGroups();
+    await loadEpisodes();
   } catch (e) {
     const { msg } = e as CatchData;
     ElMessage.error(msg);
@@ -97,21 +88,21 @@ async function setGroup() {
 /**
  * 添加分组
  */
-function addGroup() {
+function addepisode() {
   dialogMode.value = "add";
-  groupForm.value.id = 0;
-  groupForm.value.name = "";
+  episodeForm.value.id = 0;
+  episodeForm.value.title = "";
   dialogVisible.value = true;
 }
 
 /**
  * 编辑分组
- * @param {GroupResource} group 待编辑的分组
+ * @param {EpisodesResource} episode 待编辑的分组
  */
-function editGroup(group: GroupResource) {
+function editEpisode(episode: EpisodesResource) {
   dialogMode.value = "edit";
-  groupForm.value.id = group.id;
-  groupForm.value.name = group.name;
+  episodeForm.value.id = episode.id;
+  episodeForm.value.title = episode.title;
   dialogVisible.value = true;
 }
 
@@ -119,17 +110,21 @@ function editGroup(group: GroupResource) {
  * 删除分组
  * @param {number} id 分组ID
  */
-async function delGroup(id: number) {
-  ElMessageBox.confirm("此操作将永久删除该分组, 是否继续?", "提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  }).then(() => {
-    request("DELETE", `/admin/groups/${id}`)
+async function delEpisode(id: number) {
+  ElMessageBox.confirm(
+    "此操作将永久删除该剧集，但不会删除对应媒体文件, 是否继续?",
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    },
+  ).then(() => {
+    request("DELETE", `/admin/episodes/${id}`)
       .then(async ({ msg }) => {
         ElMessage.success(msg);
 
-        await loadGroups();
+        await loadEpisodes();
       })
       .catch(({ msg }) => {
         ElMessage.error(msg);
@@ -143,39 +138,21 @@ async function delGroup(id: number) {
  * @param oldIndex
  */
 async function handleSort(newIndex: number, oldIndex: number) {
-  if (!groups.value || groups.value?.length === 0) return;
+  if (!episodes.value || episodes.value?.length === 0) return;
 
   // 1. 内存同步
-  const targetRow = groups.value.splice(oldIndex, 1)[0];
-  groups.value.splice(newIndex, 0, targetRow!);
+  const targetRow = episodes.value.splice(oldIndex, 1)[0];
+  episodes.value.splice(newIndex, 0, targetRow!);
 
   // 2. 持久化
   try {
-    const ids = groups.value.map((item) => item.id);
-    const { msg } = await request("PUT", "/admin/groups/sort", { ids });
+    const ids = episodes.value.map((item) => item.id);
+    const { msg } = await request("PUT", "/admin/episodes/sort", { ids });
     ElMessage.success(msg);
   } catch (e) {
     const { msg } = e as CatchData;
     ElMessage.error(msg);
-    await loadGroups(); // 失败回滚
-  }
-}
-
-/**
- * 设置默认分组
- * @param val 设置值
- */
-function setDefault(id: number, val: boolean) {
-  if (val === true) {
-    request("PUT", `/admin/groups/${id}/default`)
-      .then(async ({ msg }) => {
-        ElMessage.success(msg);
-
-        await loadGroups();
-      })
-      .catch(({ msg }) => {
-        ElMessage.error(msg);
-      });
+    await loadEpisodes(); // 失败回滚
   }
 }
 
@@ -184,7 +161,7 @@ onMounted(function () {
   sortable = new TableSortable(".el-table__body-wrapper tbody", handleSort);
   sortable.init();
 
-  loadGroups();
+  loadEpisodes();
 });
 </script>
 
@@ -195,26 +172,30 @@ onMounted(function () {
         <el-breadcrumb-item :to="{ path: '/setting/courses' }"
           >课程列表</el-breadcrumb-item
         >
-        <el-breadcrumb-item>剧集分组管理</el-breadcrumb-item>
+        <el-breadcrumb-item
+          :to="{ path: `/setting/courses/${route.params.course_id}/groups` }"
+          >剧集分组管理</el-breadcrumb-item
+        >
+        <el-breadcrumb-item>剧集管理</el-breadcrumb-item>
       </el-breadcrumb>
     </el-col>
     <el-col class="btns" :span="6" justify="end">
-      <el-button type="primary" @click="addGroup">添加剧集分组</el-button>
+      <el-button type="primary" @click="addepisode">添加剧集</el-button>
     </el-col>
   </el-row>
 
-  <!-- 添加/编辑分组对话框 -->
+  <!-- 添加/编辑剧集对话框 -->
   <el-dialog
     v-model="dialogVisible"
-    :title="dialogMode === 'add' ? '添加分组' : '编辑分组'"
+    :title="dialogMode === 'add' ? '添加剧集' : '编辑剧集'"
     width="400"
     :center="true"
   >
-    <el-form :model="groupForm">
-      <el-form-item label="分组名" required label-width="80px">
+    <el-form :model="episodeForm">
+      <el-form-item label="剧集标题" required label-width="80px">
         <el-input
-          v-model="groupForm.name"
-          placeholder="请输入分组名"
+          v-model="episodeForm.title"
+          placeholder="请输入标题名"
           autocomplete="off"
           maxlength="10"
           show-word-limit
@@ -224,13 +205,13 @@ onMounted(function () {
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="setGroup"> 确认 </el-button>
+        <el-button type="primary" @click="setEpisode"> 确认 </el-button>
       </div>
     </template>
   </el-dialog>
 
   <el-table
-    :data="groups"
+    :data="episodes"
     :stripe="true"
     :border="true"
     height="600"
@@ -246,43 +227,18 @@ onMounted(function () {
       </template>
     </el-table-column>
 
-    <el-table-column prop="name" label="分组名" width="580" />
-    <el-table-column width="180">
-      <template #header>
-        默认分类
-        <el-tooltip content="扫描课程时，将自动添加到此分组中" placement="top">
-          <el-icon><QuestionFilled /></el-icon>
-        </el-tooltip>
-      </template>
-      <template #default="{ row }: { row: GroupResource }">
-        <el-switch
-          v-model="row.is_default"
-          :disabled="row.is_default"
-          @change="setDefault(row.id, $event)"
-        />
-      </template>
-    </el-table-column>
+    <el-table-column prop="title" label="标题" width="280" />
+    <el-table-column prop="file_path" label="文件路径" width="380" />
+    <el-table-column prop="is_completed" label="是否看完" width="100" />
     <el-table-column prop="created_at" label="创建日期" />
     <el-table-column fixed="right" label="操作" min-width="120">
-      <template #default="{ row }: { row: GroupResource }">
+      <template #default="{ row }: { row: EpisodesResource }">
         <el-tooltip content="编辑" placement="top">
           <el-button
             type="primary"
             :icon="Edit"
             circle
-            @click="editGroup(row)"
-          />
-        </el-tooltip>
-        <el-tooltip content="剧集管理" placement="top">
-          <el-button
-            type="success"
-            :icon="Document"
-            circle
-            @click="
-              router.push(
-                `/setting/courses/${row.course_id}/groups/${row.id}/episodes`,
-              )
-            "
+            @click="editEpisode(row)"
           />
         </el-tooltip>
         <el-tooltip content="删除" placement="top">
@@ -290,7 +246,7 @@ onMounted(function () {
             type="danger"
             :icon="Delete"
             circle
-            @click="delGroup(row.id)"
+            @click="delEpisode(row.id)"
           />
         </el-tooltip>
       </template>

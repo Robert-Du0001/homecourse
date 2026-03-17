@@ -33,7 +33,7 @@ func Api() {
 			router.Get("courses/{id}/groups", groupController.Index)
 
 			// 剧集相关路由
-			router.Get("episodes", episodeController.Index)
+			router.Get("groups/{group_id}/episodes", episodeController.Index)
 			router.Get("episodes/{id}", episodeController.Show)
 
 			// 管理员
@@ -54,15 +54,17 @@ func Api() {
 				router.Put("courses/{id}", courseController.Update)
 				router.Put("courses/sort", courseController.UpdateSort)
 				router.Delete("courses/{id}", courseController.Destroy)
+				router.Put("courses/scan", courseController.Scan)
 
 				// 剧集分组相关路由
 				router.Post("groups", groupController.Store)
 				router.Put("groups/{id}", groupController.Update)
 				router.Delete("groups/{id}", groupController.Destroy)
 				router.Put("groups/sort", groupController.UpdateSort)
+				router.Put("groups/{id}/default", groupController.UpdateDefault)
 
 				// 剧集相关路由
-				router.Put("episodes/scan", episodeController.Scan)
+
 			})
 		})
 	})

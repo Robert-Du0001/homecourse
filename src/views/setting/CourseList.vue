@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  Edit,
-  Delete,
-  Plus,
-  Rank,
-  Files,
-  Document,
-} from "@element-plus/icons-vue";
+import { Edit, Delete, Plus, Rank, Files } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -79,7 +72,7 @@ const categoryMap = computed(() => {
  * 扫描文件
  */
 async function scan() {
-  const { msg } = await request("PUT", "/admin/episodes/scan");
+  const { msg } = await request("PUT", "/admin/courses/scan");
   ElMessage.success(msg);
 
   await loadCourses();
@@ -401,14 +394,6 @@ onMounted(function () {
             :icon="Files"
             circle
             @click="router.push(`/setting/courses/${row.id}/groups`)"
-          />
-        </el-tooltip>
-        <el-tooltip content="剧集管理" placement="top">
-          <el-button
-            type="success"
-            :icon="Document"
-            circle
-            @click="router.push(`/setting/courses/${row.id}/episodes`)"
           />
         </el-tooltip>
         <el-tooltip content="删除" placement="top">

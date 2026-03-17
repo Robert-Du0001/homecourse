@@ -7,8 +7,9 @@ import (
 type Group struct {
 	orm.Model
 
-	ID       uint   `gorm:"primaryKey" json:"id"`
-	CourseID uint   `json:"course_id" form:"course_id"`
-	Name     string `json:"name"`
-	Sort     uint   `json:"sort"`
+	ID        uint   `gorm:"primaryKey" json:"id"`
+	CourseID  uint   `json:"course_id" form:"course_id"`
+	IsDefault bool   `json:"is_default"`
+	Name      string `json:"name"`
+	Sort      uint   `json:"sort"`
 }
