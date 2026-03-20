@@ -1,5 +1,5 @@
 # --- 前端构建 ---
-FROM node:20-alpine AS node-builder
+FROM node:24-alpine AS node-builder
 # 安装 pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
@@ -34,6 +34,7 @@ COPY --from=builder /build/.env.example /www/.env
 
 RUN /www/main artisan key:generate && \
     /www/main artisan jwt:secret && \
-    /www/main artisan migrate
+    /www/main artisan migrate && \
+    /www/main artisan app:init
 
 ENTRYPOINT ["/www/main"]

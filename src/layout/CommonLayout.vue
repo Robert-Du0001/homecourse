@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { useUserStore } from '@/store/user';
+import { useRouter } from "vue-router";
+
+import { useUserStore } from "@/store/user";
 
 const userStore = useUserStore();
 const router = useRouter();
 
 function goToIndex() {
-  router.push({ name: 'Index' });
+  router.push({ name: "Index" });
 }
 
 function goToSetting() {
-  router.push({ name: 'Setting' });
+  router.push({ name: "Setting" });
 }
 
 function logout() {
@@ -30,38 +31,26 @@ function logout() {
             :lg="6"
             @click="goToIndex"
           >
-            <el-image
-              class="logo"
-              src="/favicon.svg"
-            />
+            <el-image class="logo" src="/favicon.svg" />
             <span class="logo-txt">家庭学坊</span>
           </el-col>
           <el-col
-            :xs="{span: 6, offset: 7}"
-            :sm="{span: 6, offset: 12}"
-            :lg="{span: 6, offset: 12}"
+            :xs="{ span: 6, offset: 7 }"
+            :sm="{ span: 6, offset: 12 }"
+            :lg="{ span: 6, offset: 12 }"
           >
             <el-row justify="end">
-              <el-col
-                :span="6"
-                :lg="{push: 3}"
-              >
+              <el-col :span="6" :lg="{ push: 3 }">
                 <el-dropdown>
                   <div class="avatar">
-                    <el-avatar
-                      :size="50"
-                      src="/img/avatar.png"
-                    />
+                    <el-avatar :size="50" src="/img/avatar.png" />
                   </div>
                   <template #dropdown>
                     <el-dropdown-menu>
                       <el-dropdown-item @click="goToSetting">
                         设置
                       </el-dropdown-item>
-                      <el-dropdown-item
-                        divided
-                        @click="logout"
-                      >
+                      <el-dropdown-item divided @click="logout">
                         登出
                       </el-dropdown-item>
                     </el-dropdown-menu>
@@ -81,6 +70,7 @@ function logout() {
 
 <style scoped lang="scss">
 .header {
+  background-color: rgb(255 255 255);
   border-bottom: 1px solid var(--el-border-color);
   box-shadow: 2px 2px 12px 0 rgb(0 0 0 / 10%);
 
@@ -88,7 +78,7 @@ function logout() {
     cursor: pointer;
 
     .logo {
-      width: 50px; 
+      width: 50px;
       height: 50px;
       margin-top: 6px;
     }

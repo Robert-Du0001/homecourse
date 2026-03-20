@@ -1,0 +1,15 @@
+.vscode
+
+app
+bootstrap
+config
+database
+public
+routes
+storage
+
+tmp
+
+pnpm-lock.yaml
+go.sum
+go.mod

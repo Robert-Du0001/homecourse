@@ -1,28 +1,30 @@
 <script setup lang="ts">
-import type { FormInstance, FormRules } from 'element-plus';
-import { ref, onMounted } from 'vue';
-import { ElMessage } from 'element-plus';
-import { request } from '@/lib/js/api';
-import { useRouter } from 'vue-router';
+import { ElMessage } from "element-plus";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+
+import type { FormInstance, FormRules } from "element-plus";
+
+import { request } from "@/lib/js/api";
 
 const router = useRouter();
 
-let labelPosition = ref<'left' | 'right' | 'top'>('right');
+let labelPosition = ref<"left" | "right" | "top">("right");
 
 onMounted(() => {
   // 相当于Element+规定的xs尺寸
   if (window.innerWidth < 768) {
-    labelPosition.value = 'top';
-  }else {
-    labelPosition.value = 'right';
+    labelPosition.value = "top";
+  } else {
+    labelPosition.value = "right";
   }
 
-  window.addEventListener('resize', () => {
+  window.addEventListener("resize", () => {
     // 相当于Element+规定的xs尺寸
     if (window.innerWidth < 768) {
-      labelPosition.value = 'top';
-    }else {
-      labelPosition.value = 'right';
+      labelPosition.value = "top";
+    } else {
+      labelPosition.value = "right";
     }
   });
 });
@@ -31,23 +33,23 @@ const formRef = ref<FormInstance>();
 const btnDisabled = ref(false);
 
 const ruleForm = ref({
-  name: '',
-  password: '',
-  password_confirm: '',
+  name: "",
+  password: "",
+  password_confirm: "",
 });
 
 const rules = ref<FormRules>({
   name: [
-    { required: true, message: '账号不能为空', trigger: 'blur' },
-    { max: 10, message: '账号不能超过10个字符', trigger: 'blur' },
+    { required: true, message: "账号不能为空", trigger: "blur" },
+    { max: 10, message: "账号不能超过10个字符", trigger: "blur" },
   ],
   password: [
-    { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 8, max: 20, message: '密码长度需要8位到20位', trigger: 'blur' },
+    { required: true, message: "密码不能为空", trigger: "blur" },
+    { min: 8, max: 20, message: "密码长度需要8位到20位", trigger: "blur" },
   ],
   password_confirm: [
-    { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 8, max: 20, message: '密码长度需要8位到20位', trigger: 'blur' },
+    { required: true, message: "密码不能为空", trigger: "blur" },
+    { min: 8, max: 20, message: "密码长度需要8位到20位", trigger: "blur" },
   ],
 });
 
@@ -57,19 +59,21 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   await formEl.validate((valid) => {
     if (valid) {
       if (ruleForm.value.password !== ruleForm.value.password_confirm) {
-        ElMessage.error('两次密码不一致，请重新输入');
+        ElMessage.error("两次密码不一致，请重新输入");
         return;
       }
 
       btnDisabled.value = true;
 
-      request('POST', '/users', ruleForm.value).then(({ msg }) => {
-        ElMessage.success(msg);
-        router.replace('/login');
-      }).catch(({ msg }) => {
-        ElMessage.error(msg);
-        btnDisabled.value = false;
-      });
+      request("POST", "/user", ruleForm.value)
+        .then(({ msg }) => {
+          ElMessage.success(msg);
+          router.replace("/login");
+        })
+        .catch(({ msg }) => {
+          ElMessage.error(msg);
+          btnDisabled.value = false;
+        });
     }
   });
 };
@@ -77,14 +81,8 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
 <template>
   <el-row>
-    <el-col
-      :xs="16"
-      :sm="12"
-      class="login-panel"
-    >
-      <div class="login-title">
-        欢迎注册家庭学坊账号
-      </div>
+    <el-col :xs="16" :sm="12" class="login-panel">
+      <div class="login-title">欢迎注册家庭学坊账号</div>
       <el-form
         ref="formRef"
         :model="ruleForm"
@@ -93,30 +91,21 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         :label-position="labelPosition"
         status-icon
       >
-        <el-form-item
-          label="账号"
-          prop="name"
-        >
+        <el-form-item label="账号" prop="name">
           <el-input
             v-model="ruleForm.name"
             type="text"
             placeholder="请输入您的账号"
           />
         </el-form-item>
-        <el-form-item
-          label="密码"
-          prop="password"
-        >
+        <el-form-item label="密码" prop="password">
           <el-input
             v-model="ruleForm.password"
             type="password"
             placeholder="请输入您的密码"
           />
         </el-form-item>
-        <el-form-item
-          label="确认密码"
-          prop="password"
-        >
+        <el-form-item label="确认密码" prop="password">
           <el-input
             v-model="ruleForm.password_confirm"
             type="password"
@@ -132,11 +121,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
           >
             注册
           </el-button>
-          <el-link
-            class="to-register"
-            type="info"
-            href="/login"
-          >
+          <el-link class="to-register" type="info" href="/login">
             已有账号？点击登录
           </el-link>
         </el-form-item>

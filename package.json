@@ -5,26 +5,39 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src --fix && prettier --write \"src/**/*.{ts,vue,scss,json}\"",
+    "prepare": "husky",
+    "lint:eslint": "eslint --fix",
+    "lint:stylelint": "stylelint --fix"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
+    "@vueuse/core": "^14.2.1",
     "dplayer": "^1.27.1",
-    "element-plus": "^2.13.1",
+    "element-plus": "^2.13.4",
     "pinia": "^3.0.4",
+    "sortablejs": "^1.15.7",
     "vue": "^3.5.24",
-    "vue-router": "^4.6.4"
+    "vue-router": "^4.6.4",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@stylistic/eslint-plugin": "^5.8.0",
     "@types/dplayer": "^1.25.5",
+    "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-vue": "^10.7.0",
     "globals": "^17.3.0",
+    "husky": "^9.1.7",
     "jiti": "^2.6.1",
+    "lint-staged": "^16.3.3",
+    "prettier": "3.8.1",
     "sass": "^1.97.2",
     "stylelint": "^17.1.1",
     "stylelint-config-recess-order": "^7.6.0",
@@ -36,5 +49,12 @@
     "vite": "^7.2.4",
     "vite-plugin-checker": "^0.12.0",
     "vue-tsc": "^3.2.4"
+  },
+  "lint-staged": {
+    "**/*.{ts,vue,js}": "npm run lint:eslint",
+    "**/*.{scss,css,vue}": "npm run lint:stylelint",
+    "*.go": [
+      "gofmt -w"
+    ]
   }
 }

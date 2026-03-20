@@ -10,6 +10,8 @@ import (
 
 func Boot() contractsfoundation.Application {
 	return foundation.Setup().
+		WithRules(Rules).
+		WithCommands(Commands).
 		WithMigrations(Migrations).
 		WithRouting(func() {
 			routes.Web()

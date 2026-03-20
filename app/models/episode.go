@@ -6,11 +6,10 @@ import "github.com/goravel/framework/database/orm"
 type Episode struct {
 	orm.Model
 
-	UserID      uint
-	CourseID    uint   `json:"course_id"`
-	Title       string `json:"title"`
-	FilePath    string `json:"file_path"`
-	Sort        uint   `json:"sort"`
-	Duration    uint   `json:"duration"`
-	IsCompleted bool   `json:"is_completed"`
+	GroupID         uint   `json:"group_id" form:"group_id"`
+	Title           string `json:"title"`
+	FilePath        string `json:"file_path" form:"file_path"`
+	Sort            uint   `json:"sort"`
+	Duration        uint   `json:"duration"`
+	WatchedDuration bool   `json:"watched_duration"`
 }

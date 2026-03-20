@@ -12,26 +12,74 @@ func Api() {
 	userController := controllers.NewUserController()
 	categoryController := controllers.NewCategoryController()
 	courseController := controllers.NewCourseController()
+	groupController := controllers.NewGroupController()
 	episodeController := controllers.NewEpisodeController()
+	attachmentController := controllers.NewAttachmentController()
 
 	facades.Route().Prefix("api").Group(func(router route.Router) {
-		router.Post("/users", userController.Store)
-		router.Post("/users/token", userController.Login)
+		router.Post("user", userController.Store)
+		router.Post("user/token", userController.Login)
 
 		router.Middleware(middleware.Auth()).Group(func(router route.Router) {
-			router.Get("/users", userController.Show)
+			router.Get("user", userController.Show)
 
 			// 课程分类相关路由
-			router.Get("/categories", categoryController.Index)
+			router.Get("categories", categoryController.Index)
 
 			// 课程相关路由
-			router.Get("/courses", courseController.Index)
-			router.Get("/courses/{id}", courseController.Show)
+			router.Get("courses", courseController.Index)
+			router.Get("courses/{id}", courseController.Show)
 
-			// 课程集相关路由
-			router.Get("/episodes", episodeController.Index)
-			router.Get("/episodes/{id}", episodeController.Show)
-			router.Put("/episodes/scan", episodeController.Scan)
+			// 剧集分组相关路由
+			router.Get("courses/{id}/groups", groupController.Index)
+
+			// 剧集相关路由
+			router.Get("groups/{group_id}/episodes", episodeController.Index)
+			router.Get("episodes/{id}", episodeController.Show)
+
+			// 附件相关路由
+			router.Get("episodes/{id}/attachments", attachmentController.Index)
+
+			// 管理员
+			router.Middleware(middleware.Admin()).Prefix("admin").Group(func(router route.Router) {
+				router.Get("users", userController.Index)
+				router.Delete("users/{id}", userController.Destroy)
+
+				// 课程分类相关路由
+				router.Post("categories", categoryController.Store)
+				router.Put("categories/{id}", categoryController.Update)
+				router.Put("categories/{id}/default", categoryController.UpdateDefault)
+				router.Put("categories/sort", categoryController.UpdateSort)
+				router.Delete("categories/{id}", categoryController.Destroy)
+
+				// 课程相关路由
+				router.Get("courses", courseController.AdminIndex)
+				router.Post("courses", courseController.Store)
+				router.Put("courses/{id}", courseController.Update)
+				router.Put("courses/sort", courseController.UpdateSort)
+				router.Delete("courses/{id}", courseController.Destroy)
+				router.Put("courses/scan", courseController.Scan)
+				router.Get("courses/statistic", courseController.Statistic)
+
+				// 剧集分组相关路由
+				router.Post("groups", groupController.Store)
+				router.Put("groups/{id}", groupController.Update)
+				router.Delete("groups/{id}", groupController.Destroy)
+				router.Put("groups/sort", groupController.UpdateSort)
+				router.Put("groups/{id}/default", groupController.UpdateDefault)
+
+				// 剧集相关路由
+				router.Delete("episodes/{id}", episodeController.Destroy)
+				router.Put("episodes/sort", episodeController.UpdateSort)
+				router.Post("episodes", episodeController.Store)
+				router.Put("episodes/{id}", episodeController.Update)
+				router.Get("episodes/statistic", episodeController.Statistic)
+
+				// 附件相关路由
+				router.Post("episodes/{id}/attachments", attachmentController.Store)
+				router.Delete("attachments/{id}", attachmentController.Destroy)
+				router.Get("attachments/statistic", attachmentController.Statistic)
+			})
 		})
 	})
 }

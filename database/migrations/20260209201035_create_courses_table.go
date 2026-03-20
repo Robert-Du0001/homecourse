@@ -18,11 +18,11 @@ func (r *M20260209201035CreateCoursesTable) Up() error {
 	if !facades.Schema().HasTable("courses") {
 		return facades.Schema().Create("courses", func(table schema.Blueprint) {
 			table.ID()                                     // 自增 ID
-			table.BigInteger("user_id")                    // 创建者 ID
 			table.BigInteger("category_id").Default(0)     // 所属分类 ID
 			table.String("title")                          // 课程标题
 			table.Text("description").Nullable()           // 课程简介
 			table.String("cover_path").Nullable()          // 封面图路径或 URL
+			table.Integer("sort").Default(0)               // 排序序号
 			table.UnsignedTinyInteger("status").Default(0) // 状态 (0: 未开始, 1: 学习中, 2: 已完结)
 			table.TimestampsTz()
 

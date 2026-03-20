@@ -3,7 +3,6 @@ package middleware
 import (
 	"homecourse/app/http/response"
 	"homecourse/app/models"
-	"strconv"
 	"strings"
 
 	"github.com/goravel/framework/contracts/http"
@@ -31,23 +30,17 @@ func Auth() http.Middleware {
 			_ = response.Unauthorized(ctx, "E3").Abort()
 			return
 		}
-		ok, err := strconv.ParseUint(uid, 10, 0)
-		if err != nil {
+
+		var user models.User
+
+		// 获取用户数据，同时判断此id是否存在
+		if err := facades.Orm().Query().Where("id", uid).FindOrFail(&user, uid); err != nil {
 			_ = response.Unauthorized(ctx, "E4").Abort()
 			return
 		}
 
-		// 判断此id是否存在
-		if flag, err := facades.Orm().Query().Model(&models.User{}).Where("id", uid).Exists(); err != nil {
-			_ = response.Unauthorized(ctx, "E5").Abort()
-			return
-		} else if !flag {
-			_ = response.Unauthorized(ctx, "E6").Abort()
-			return
-		}
-
 		// 存放UserID
-		ctx.WithValue(models.UserID, uint(ok))
+		ctx.WithValue(models.Cuser, user)
 
 		ctx.Request().Next()
 	}

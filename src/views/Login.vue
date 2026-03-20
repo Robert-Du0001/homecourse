@@ -1,31 +1,33 @@
 <script setup lang="ts">
-import type { FormInstance, FormRules } from 'element-plus';
-import type { UserResource } from '@/types/user';
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useUserStore } from '@/store/user';
-import { request } from '@/lib/js/api';
-import { ElMessage } from 'element-plus';
+import { ElMessage } from "element-plus";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+
+import type { UserResource } from "@/types/user";
+import type { FormInstance, FormRules } from "element-plus";
+
+import { request } from "@/lib/js/api";
+import { useUserStore } from "@/store/user";
 
 const router = useRouter();
 const userStore = useUserStore();
 
-let labelPosition = ref<'left' | 'right' | 'top'>('right');
+let labelPosition = ref<"left" | "right" | "top">("right");
 
 onMounted(() => {
   // 相当于Element+规定的xs尺寸
   if (window.innerWidth < 768) {
-    labelPosition.value = 'top';
-  }else {
-    labelPosition.value = 'right';
+    labelPosition.value = "top";
+  } else {
+    labelPosition.value = "right";
   }
 
-  window.addEventListener('resize', () => {
+  window.addEventListener("resize", () => {
     // 相当于Element+规定的xs尺寸
     if (window.innerWidth < 768) {
-      labelPosition.value = 'top';
-    }else {
-      labelPosition.value = 'right';
+      labelPosition.value = "top";
+    } else {
+      labelPosition.value = "right";
     }
   });
 });
@@ -34,19 +36,19 @@ const formRef = ref<FormInstance>();
 const btnDisabled = ref(false);
 
 const ruleForm = ref({
-  name: '',
-  password: '',
+  name: "",
+  password: "",
   remember: false,
 });
 
 const rules = ref<FormRules>({
   name: [
-    { required: true, message: '账号不能为空', trigger: 'blur' },
-    { max: 10, message: '账号不能超过10个字符', trigger: 'blur' },
+    { required: true, message: "账号不能为空", trigger: "blur" },
+    { max: 10, message: "账号不能超过10个字符", trigger: "blur" },
   ],
   password: [
-    { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 8, max: 20, message: '密码长度需要8位到20位', trigger: 'blur' },
+    { required: true, message: "密码不能为空", trigger: "blur" },
+    { min: 8, max: 20, message: "密码长度需要8位到20位", trigger: "blur" },
   ],
 });
 
@@ -57,14 +59,14 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     if (valid) {
       btnDisabled.value = true;
 
-      request<UserResource>('POST', '/users/token', ruleForm.value)
+      request<UserResource>("POST", "/user/token", ruleForm.value)
         .then(({ msg, data }) => {
           ElMessage.success(msg);
 
           userStore.$patch(data);
           userStore.setToken(data.token);
 
-          router.replace('/');
+          router.replace("/");
         })
         .catch(({ msg }) => {
           ElMessage.error(msg);
@@ -77,14 +79,8 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
 <template>
   <el-row>
-    <el-col
-      :xs="16"
-      :sm="12"
-      class="login-panel"
-    >
-      <div class="login-title">
-        欢迎登录家庭学坊
-      </div>
+    <el-col :xs="16" :sm="12" class="login-panel">
+      <div class="login-title">欢迎登录家庭学坊</div>
       <el-form
         ref="formRef"
         :model="ruleForm"
@@ -93,24 +89,22 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         :label-position="labelPosition"
         status-icon
       >
-        <el-form-item
-          label="账号"
-          prop="name"
-        >
+        <el-form-item label="账号" prop="name">
           <el-input
             v-model="ruleForm.name"
             type="text"
             placeholder="请输入您的账号"
+            maxlength="10"
+            show-word-limit
           />
         </el-form-item>
-        <el-form-item
-          label="密码"
-          prop="password"
-        >
+        <el-form-item label="密码" prop="password">
           <el-input
             v-model="ruleForm.password"
             type="password"
             placeholder="请输入您的密码"
+            maxlength="20"
+            show-password
           />
         </el-form-item>
         <!-- <el-form-item
@@ -132,11 +126,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
           >
             登录
           </el-button>
-          <el-link
-            class="to-register"
-            type="info"
-            href="/register"
-          >
+          <el-link class="to-register" type="info" href="/register">
             没有账号？点击注册
           </el-link>
         </el-form-item>
