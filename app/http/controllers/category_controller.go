@@ -108,17 +108,6 @@ func (r *CategoryController) Store(ctx http.Context) http.Response {
 func (r *CategoryController) Destroy(ctx http.Context) http.Response {
 	categoryId := ctx.Request().Route("id")
 
-	var category models.Category
-	if err := facades.Orm().Query().Select("id", "is_default").
-		Find(&category, categoryId); err != nil {
-		return response.InternalServerError(ctx, "E1", err)
-	}
-
-	// 默认分类不能被删除
-	if category.IsDefault {
-		return response.BadRequest(ctx, "默认分类不能被删除", nil)
-	}
-
 	// 判断此分类是否有课程存在
 	if exists, err := facades.Orm().Query().Model(&models.Course{}).
 		Where("category_id", categoryId).
@@ -128,7 +117,9 @@ func (r *CategoryController) Destroy(ctx http.Context) http.Response {
 		return response.BadRequest(ctx, "此分类下有课程存在，请先删除课程", nil)
 	}
 
-	if _, err := facades.Orm().Query().Delete(&category); err != nil {
+	if _, err := facades.Orm().Query().Model(&models.Category{}).
+		Where("id", categoryId).
+		Delete(); err != nil {
 		return response.InternalServerError(ctx, "E2", err)
 	}
 

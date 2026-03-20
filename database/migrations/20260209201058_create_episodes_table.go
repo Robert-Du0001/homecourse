@@ -17,13 +17,13 @@ func (r *M20260209201058CreateEpisodesTable) Signature() string {
 func (r *M20260209201058CreateEpisodesTable) Up() error {
 	if !facades.Schema().HasTable("episodes") {
 		return facades.Schema().Create("episodes", func(table schema.Blueprint) {
-			table.ID()                              // 自增 ID
-			table.BigInteger("group_id").Default(0) // 所属分组 ID
-			table.String("title").Comment("剧集标题")   // 如：01. 环境搭建
-			table.String("file_path").Comment("视频文件的路径")
-			table.Integer("sort").Default(0).Comment("按课程分组排序")
-			table.Integer("duration").Default(0).Comment("时长（秒）") // 后续可用 ffmpeg 自动获取
-			table.Boolean("is_completed").Default(false).Comment("是否看完")
+			table.ID()                                   // 自增 ID
+			table.BigInteger("group_id").Default(0)      // 所属分组 ID
+			table.String("title")                        // 剧集标题（如：01. 环境搭建）
+			table.String("file_path")                    // 视频文件的路径
+			table.Integer("sort").Default(0)             // 按课程分组排序
+			table.Integer("duration").Default(0)         // 时长（秒）（后续可用 ffmpeg 自动获取）
+			table.Integer("watched_duration").Default(0) // 已观看时长（秒）
 			table.TimestampsTz()
 
 			table.Foreign("group_id").References("id").On("groups").CascadeOnDelete()

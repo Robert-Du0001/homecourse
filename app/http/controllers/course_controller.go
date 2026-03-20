@@ -244,19 +244,21 @@ func (r *CourseController) Update(ctx http.Context) http.Response {
 		Select("cover_path").
 		Where("id", course.ID).
 		Get(&oldCoverPath); err != nil {
-		return response.InternalServerError(ctx, "E2", err)
+		return response.InternalServerError(ctx, "E6", err)
 	}
 
 	// 更新课程内容
 	if _, err := facades.Orm().Query().Model(&models.Course{}).
 		Where("id", course.ID).
 		Update(course); err != nil {
-		return response.InternalServerError(ctx, "E3", err)
+		return response.InternalServerError(ctx, "E7", err)
 	}
 
 	// 删除旧的封面
-	if err := facades.Storage().Delete(oldCoverPath.CoverPath); err != nil {
-		return response.InternalServerError(ctx, "E4", err)
+	if oldCoverPath.CoverPath != "" {
+		if err := facades.Storage().Delete(oldCoverPath.CoverPath); err != nil {
+			return response.InternalServerError(ctx, "E8", err)
+		}
 	}
 
 	return response.Ok(ctx, "课程修改成功", nil)
@@ -498,5 +500,17 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 	return response.Ok(ctx, "扫描完成", map[string]int{
 		"new_courses":  len(newCourses),
 		"new_episodes": len(finalEpisodes),
+	})
+}
+
+// 统计课程
+func (r *CourseController) Statistic(ctx http.Context) http.Response {
+	total, err := facades.Orm().Query().Model(&models.Course{}).Count()
+	if err != nil {
+		return response.InternalServerError(ctx, "E1", err)
+	}
+
+	return response.Ok(ctx, "获取成功", map[string]any{
+		"total": total,
 	})
 }

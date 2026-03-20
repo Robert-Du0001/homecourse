@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
+    "@vueuse/core": "^14.2.1",
     "dplayer": "^1.27.1",
     "element-plus": "^2.13.4",
     "pinia": "^3.0.4",

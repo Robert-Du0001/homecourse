@@ -13,5 +13,6 @@ func Migrations() []schema.Migration {
 		&migrations.M20260209201035CreateCoursesTable{},
 		&migrations.M20260314170959CreateGroupsTable{},
 		&migrations.M20260209201058CreateEpisodesTable{},
+		&migrations.M20260318162447CreateAttachmentsTable{},
 	}
 }

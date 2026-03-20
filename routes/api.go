@@ -14,6 +14,7 @@ func Api() {
 	courseController := controllers.NewCourseController()
 	groupController := controllers.NewGroupController()
 	episodeController := controllers.NewEpisodeController()
+	attachmentController := controllers.NewAttachmentController()
 
 	facades.Route().Prefix("api").Group(func(router route.Router) {
 		router.Post("user", userController.Store)
@@ -36,6 +37,9 @@ func Api() {
 			router.Get("groups/{group_id}/episodes", episodeController.Index)
 			router.Get("episodes/{id}", episodeController.Show)
 
+			// 附件相关路由
+			router.Get("episodes/{id}/attachments", attachmentController.Index)
+
 			// 管理员
 			router.Middleware(middleware.Admin()).Prefix("admin").Group(func(router route.Router) {
 				router.Get("users", userController.Index)
@@ -55,6 +59,7 @@ func Api() {
 				router.Put("courses/sort", courseController.UpdateSort)
 				router.Delete("courses/{id}", courseController.Destroy)
 				router.Put("courses/scan", courseController.Scan)
+				router.Get("courses/statistic", courseController.Statistic)
 
 				// 剧集分组相关路由
 				router.Post("groups", groupController.Store)
@@ -64,7 +69,16 @@ func Api() {
 				router.Put("groups/{id}/default", groupController.UpdateDefault)
 
 				// 剧集相关路由
+				router.Delete("episodes/{id}", episodeController.Destroy)
+				router.Put("episodes/sort", episodeController.UpdateSort)
+				router.Post("episodes", episodeController.Store)
+				router.Put("episodes/{id}", episodeController.Update)
+				router.Get("episodes/statistic", episodeController.Statistic)
 
+				// 附件相关路由
+				router.Post("episodes/{id}/attachments", attachmentController.Store)
+				router.Delete("attachments/{id}", attachmentController.Destroy)
+				router.Get("attachments/statistic", attachmentController.Statistic)
 			})
 		})
 	})

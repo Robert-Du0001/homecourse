@@ -69,9 +69,9 @@ async function loadGroups() {
  * 设置课程分类
  */
 async function setGroup() {
-  let category;
+  let group;
   try {
-    category = await groupSchema.validate(groupForm.value);
+    group = await groupSchema.validate(groupForm.value);
   } catch (e) {
     const { message } = e as ValidationError;
     ElMessage.error(message);
@@ -84,7 +84,7 @@ async function setGroup() {
       dialogMode.value === "add"
         ? `/admin/groups`
         : `/admin/groups/${groupForm.value.id}`;
-    const { msg } = await request(apiMethod, api, category);
+    const { msg } = await request(apiMethod, api, group);
     ElMessage.success(msg);
     dialogVisible.value = false;
     await loadGroups();
@@ -289,6 +289,7 @@ onMounted(function () {
           <el-button
             type="danger"
             :icon="Delete"
+            :disabled="row.is_default"
             circle
             @click="delGroup(row.id)"
           />

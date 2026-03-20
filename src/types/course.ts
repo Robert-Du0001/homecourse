@@ -6,8 +6,6 @@ export type CourseResource = {
   id: number;
   /** 分类ID */
   category_id: number;
-  /** 分组ID */
-  group_id: number;
   /** 课程标题 */
   title: string;
   /** 课程简介 */

@@ -75,6 +75,11 @@ const routes = [
         name: "SettingEpisodeList",
         component: () => import("@/views/setting/EpisodeList.vue"),
       },
+      {
+        path: "/setting/courses/:course_id/groups/:group_id/episodes/:episode_id/attachments",
+        name: "SettingAttachmentList",
+        component: () => import("@/views/setting/AttachmentList.vue"),
+      },
     ],
   },
 ];

@@ -1,19 +1,27 @@
 <script setup lang="ts">
-import { ArrowRight, Delete, Edit, Rank } from "@element-plus/icons-vue";
+import {
+  ArrowRight,
+  Delete,
+  Edit,
+  Folder,
+  Rank,
+} from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
-import { object, string, ValidationError } from "yup";
+import { useRoute, useRouter } from "vue-router";
+import { number, object, string, ValidationError } from "yup";
 
-import type { EpisodesResource } from "@/types/episode";
+import type { EpisodesItemResource } from "@/types/episode";
 
 import { request, type CatchData } from "@/lib/js/api";
 import { TableSortable } from "@/lib/js/tableSortable";
 
 /** 当前路由对象 */
 const route = useRoute();
+/** 路由实例 */
+const router = useRouter();
 /** 剧集分组列表 */
-const episodes = ref<EpisodesResource[]>([]);
+const episodes = ref<EpisodesItemResource[]>([]);
 /** 是否显示添加/编辑课程分组对话框 */
 const dialogVisible = ref(false);
 /**
@@ -31,11 +39,18 @@ const episodeForm = ref({
   group_id: route.params.group_id,
   /** 剧集标题 */
   title: "",
+  /** 剧集文件路径 */
+  file_path: "",
 });
 /** 分组表单验证规则 */
 const episodeSchema = object({
   /** 分组名 */
-  name: string().required("请输入分组名").max(10, "分组名不能超过10个字符"),
+  title: string()
+    .required("请输入剧集标题")
+    .max(20, "剧集标题不能超过20个字符"),
+  /** 剧集文件路径 */
+  file_path: string().required("请填写剧集文件的路径"),
+  group_id: number().required("请选择所属的剧集分组"),
 });
 /** 表格排序实例 */
 let sortable: TableSortable | null = null;
@@ -45,7 +60,7 @@ let sortable: TableSortable | null = null;
  */
 async function loadEpisodes() {
   try {
-    const { data } = await request<EpisodesResource[]>(
+    const { data } = await request<EpisodesItemResource[]>(
       "GET",
       `/groups/${route.params.group_id}/episodes`,
     );
@@ -60,9 +75,9 @@ async function loadEpisodes() {
  * 设置课程分类
  */
 async function setEpisode() {
-  let category;
+  let episode;
   try {
-    category = await episodeSchema.validate(episodeForm.value);
+    episode = await episodeSchema.validate(episodeForm.value);
   } catch (e) {
     const { message } = e as ValidationError;
     ElMessage.error(message);
@@ -75,7 +90,7 @@ async function setEpisode() {
       dialogMode.value === "add"
         ? `/admin/episodes`
         : `/admin/episodes/${episodeForm.value.id}`;
-    const { msg } = await request(apiMethod, api, category);
+    const { msg } = await request(apiMethod, api, episode);
     ElMessage.success(msg);
     dialogVisible.value = false;
     await loadEpisodes();
@@ -88,21 +103,23 @@ async function setEpisode() {
 /**
  * 添加分组
  */
-function addepisode() {
+function addEpisode() {
   dialogMode.value = "add";
   episodeForm.value.id = 0;
   episodeForm.value.title = "";
+  episodeForm.value.file_path = "";
   dialogVisible.value = true;
 }
 
 /**
  * 编辑分组
- * @param {EpisodesResource} episode 待编辑的分组
+ * @param {EpisodesItemResource} episode 待编辑的分组
  */
-function editEpisode(episode: EpisodesResource) {
+function editEpisode(episode: EpisodesItemResource) {
   dialogMode.value = "edit";
   episodeForm.value.id = episode.id;
   episodeForm.value.title = episode.title;
+  episodeForm.value.file_path = episode.file_path;
   dialogVisible.value = true;
 }
 
@@ -112,7 +129,7 @@ function editEpisode(episode: EpisodesResource) {
  */
 async function delEpisode(id: number) {
   ElMessageBox.confirm(
-    "此操作将永久删除该剧集，但不会删除对应媒体文件, 是否继续?",
+    "此操作将永久删除该剧集，并且会删除关联的附件，但不会删除对应剧集文件, 是否继续?",
     "提示",
     {
       confirmButtonText: "确定",
@@ -180,7 +197,7 @@ onMounted(function () {
       </el-breadcrumb>
     </el-col>
     <el-col class="btns" :span="6" justify="end">
-      <el-button type="primary" @click="addepisode">添加剧集</el-button>
+      <el-button type="primary" @click="addEpisode">添加剧集</el-button>
     </el-col>
   </el-row>
 
@@ -197,8 +214,15 @@ onMounted(function () {
           v-model="episodeForm.title"
           placeholder="请输入标题名"
           autocomplete="off"
-          maxlength="10"
+          maxlength="20"
           show-word-limit
+        />
+      </el-form-item>
+      <el-form-item label="文件路径" required label-width="80px">
+        <el-input
+          v-model="episodeForm.file_path"
+          placeholder="请输入文件路径"
+          autocomplete="off"
         />
       </el-form-item>
     </el-form>
@@ -229,16 +253,27 @@ onMounted(function () {
 
     <el-table-column prop="title" label="标题" width="280" />
     <el-table-column prop="file_path" label="文件路径" width="380" />
-    <el-table-column prop="is_completed" label="是否看完" width="100" />
     <el-table-column prop="created_at" label="创建日期" />
     <el-table-column fixed="right" label="操作" min-width="120">
-      <template #default="{ row }: { row: EpisodesResource }">
+      <template #default="{ row }: { row: EpisodesItemResource }">
         <el-tooltip content="编辑" placement="top">
           <el-button
             type="primary"
             :icon="Edit"
             circle
             @click="editEpisode(row)"
+          />
+        </el-tooltip>
+        <el-tooltip content="附件管理" placement="top">
+          <el-button
+            type="warning"
+            :icon="Folder"
+            circle
+            @click="
+              router.push(
+                `/setting/courses/${route.params.course_id}/groups/${row.group_id}/episodes/${row.id}/attachments`,
+              )
+            "
           />
         </el-tooltip>
         <el-tooltip content="删除" placement="top">

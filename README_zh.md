@@ -1,5 +1,9 @@
 # HomeCourse
 
+[![GitHub Release](https://img.shields.io/github/release/Robert-Du0001/homecourse.svg)](https://github.com/Robert-Du0001/homecourse/releases)
+![Docker Image Version](https://img.shields.io/docker/v/robertdu0001/homecourse?label=docker%20image&sort=semver)
+[![License](https://img.shields.io/github/license/Robert-Du0001/homecourse)](LICENSE)
+
 [English](./README.md) | 中文
 
 ## 简介

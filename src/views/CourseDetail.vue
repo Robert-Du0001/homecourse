@@ -1,34 +1,74 @@
 <script setup lang="ts">
 import { ArrowRight } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 
 import type { CatchData } from "@/lib/js/api";
 import type { CourseResource } from "@/types/course";
 import type { EpisodesItemResource } from "@/types/episode";
+import type { GroupResource } from "@/types/group";
 
 import { request } from "@/lib/js/api";
 import { getDefaultBgImg } from "@/lib/js/helper";
 
+/** 分类选项类型 */
+type Option = {
+  label: string;
+  value: number;
+};
+
 const route = useRoute();
 const courseId = route.params.id;
 const course = ref<CourseResource>();
+const groups = ref<GroupResource[]>([]);
 const episodes = ref<EpisodesItemResource[]>([]);
+/** 当前选中的剧集分组 */
+const activeGroupId = ref(0);
+
+/** 分组选项 */
+const segmentedOptions = computed(() => {
+  let baseOptions: Option[] = [];
+  if (groups.value) {
+    baseOptions = groups.value.map((item) => ({
+      label: item.name,
+      value: item.id,
+    }));
+  }
+
+  return baseOptions;
+});
+
+/**
+ * 获取剧集数据
+ */
+async function loadEpisodes() {
+  const { data: episodesData } = await request<EpisodesItemResource[]>(
+    "GET",
+    `/groups/${activeGroupId.value}/episodes`,
+  );
+  episodes.value = episodesData;
+}
 
 onMounted(async function () {
   try {
+    // 获取课程数据
     const { data: courseData } = await request<CourseResource>(
       "GET",
       `/courses/${courseId}`,
     );
     course.value = courseData;
 
-    const { data: episodesData } = await request<EpisodesItemResource[]>(
+    // 获取剧集分组数据
+    const { data: groupsData } = await request<GroupResource[]>(
       "GET",
-      `/episodes?course_id=${courseId}`,
+      `/courses/${courseId}/groups`,
     );
-    episodes.value = episodesData;
+    groups.value = groupsData;
+
+    activeGroupId.value = groups.value[0]!.id;
+
+    await loadEpisodes();
   } catch (e) {
     const { msg } = e as CatchData;
     ElMessage.error(msg);
@@ -69,14 +109,24 @@ onMounted(async function () {
           alt="课程目录"
         />
       </div>
-      <div v-if="!episodes.length" class="episodes-empty">暂无课程内容</div>
-      <ul v-else class="episodes">
+
+      <!-- 分组筛选 -->
+      <div v-if="segmentedOptions.length > 1" class="filter-container">
+        <el-segmented
+          v-model="activeGroupId"
+          :options="segmentedOptions"
+          @change="loadEpisodes"
+        />
+      </div>
+
+      <ul v-if="episodes.length" class="episodes">
         <li v-for="(e, i) in episodes" :key="i" class="episode-item">
           <el-link type="primary" :href="'/episodes/' + e.id">
             {{ e.title.split(".")[0] }}
           </el-link>
         </li>
       </ul>
+      <el-empty v-else description="暂无课程内容" />
     </div>
   </div>
   <el-backtop :right="100" :bottom="100" />
@@ -85,6 +135,7 @@ onMounted(async function () {
 <style scoped lang="scss">
 .content {
   width: 1200px;
+  height: calc(100vh - 100px);
   margin: 0 auto;
 
   .course-panel {
@@ -130,6 +181,39 @@ onMounted(async function () {
           -webkit-line-clamp: 11; /* 用来限制在一个块元素显示的文本的行数 */
           -webkit-box-orient: vertical; /* 必须结合使用的属性，设置或检索伸缩盒对象的子元素的排列方式 */
         }
+      }
+    }
+  }
+
+  .filter-container {
+    margin: 20px 40px;
+
+    .el-segmented {
+      /* 组件整体圆角，让它更圆润，像个胶囊容器 */
+      --el-border-radius-base: 24px;
+
+      /* 未选中状态的背景色 */
+      --el-segmented-bg-color: rgb(240 242 245);
+
+      /* --- 关键改变：选中的按钮样式 --- */
+
+      /* 1. 选中的滑块背景色（好看的活力橙） */
+      --el-segmented-item-selected-bg-color: rgb(255 149 0);
+
+      /* 2. 选中的文字颜色（改为白色，与橙色更搭，比默认黑色好看） */
+      --el-segmented-item-selected-color: rgb(255 255 255);
+
+      /* 3. 给选中的胶囊增加一点轻微的发光阴影，增强质感 */
+      --el-segmented-item-selected-box-shadow: 0 4px 10px rgb(255 120 45 / 20%);
+
+      :deep(.el-segmented__item + .el-segmented__item) {
+        margin-left: 10px;
+      }
+
+      :deep(
+        .el-segmented__item:not(.is-selected):hover .el-segmented__item-label
+      ) {
+        color: rgb(255 149 0); /* 亮橙色 */
       }
     }
   }

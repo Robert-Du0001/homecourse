@@ -34,7 +34,7 @@ export default defineConfig({
   server: {
     proxy: {
       // 代理到后端服务，并处理跨域
-      "^/(api|covers|videos)": {
+      "^/(api|covers|videos|attachments)": {
         target: "http://localhost:3001",
         changeOrigin: true,
       },
