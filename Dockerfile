@@ -29,6 +29,7 @@ WORKDIR /www
 COPY --from=node-builder /node-build/public/ /www/public/
 
 COPY --from=builder /build/main /www/
+COPY --from=builder /build/entrypoint.sh /www/
 COPY --from=builder /build/storage/ /www/storage/
 COPY --from=builder /build/.env.example /www/.env
 
