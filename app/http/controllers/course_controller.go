@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"homecourse/app/http/response"
 	"homecourse/app/models"
+	netHttp "net/http"
 	"slices"
 	"strings"
 
@@ -211,40 +212,45 @@ func (r *CourseController) Update(ctx http.Context) http.Response {
 
 	file, err := ctx.Request().File("cover_file")
 	if err != nil {
-		return response.InternalServerError(ctx, "E3", nil)
+		// 如果不是文件没上传的错误，则需要报错
+		if !errors.Is(err, netHttp.ErrMissingFile) {
+			return response.InternalServerError(ctx, "E3", err)
+		}
+	} else { // 有文件上传
+		// 验证 MIME 类型
+		mime, err := file.MimeType()
+		if err != nil {
+			return response.InternalServerError(ctx, "E4", err)
+		}
+
+		// 定义允许的类型
+		allowMimes := facades.Config().Get("app.allow_img_mimes")
+
+		if !allowMimes.(map[string]bool)[mime] {
+			return response.BadRequest(ctx, "不支持的文件格式: "+mime, nil)
+		}
+
+		// 保存封面文件
+		coverPath, err := facades.Storage().PutFile("/covers", file)
+		if err != nil {
+			return response.InternalServerError(ctx, "E5", err)
+		}
+
+		course.CoverPath = coverPath
 	}
-
-	// 验证 MIME 类型
-	mime, err := file.MimeType()
-	if err != nil {
-		return response.InternalServerError(ctx, "E4", err)
-	}
-
-	// 定义允许的类型
-	allowMimes := facades.Config().Get("app.allow_img_mimes")
-
-	if !allowMimes.(map[string]bool)[mime] {
-		return response.BadRequest(ctx, "不支持的文件格式: "+mime, nil)
-	}
-
-	// 保存封面文件
-	coverPath, err := facades.Storage().PutFile("/covers", file)
-	if err != nil {
-		return response.InternalServerError(ctx, "E5", nil)
-	}
-
-	course.CoverPath = coverPath
 
 	// 获取旧的封面路径
 	type oldCover struct {
 		CoverPath string
 	}
 	var oldCoverPath oldCover
-	if err := facades.Orm().Query().Model(&models.Course{}).
-		Select("cover_path").
-		Where("id", course.ID).
-		Get(&oldCoverPath); err != nil {
-		return response.InternalServerError(ctx, "E6", err)
+	if course.CoverPath != "" {
+		if err := facades.Orm().Query().Model(&models.Course{}).
+			Select("cover_path").
+			Where("id", course.ID).
+			Get(&oldCoverPath); err != nil {
+			return response.InternalServerError(ctx, "E6", err)
+		}
 	}
 
 	// 更新课程内容
@@ -346,7 +352,7 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 
 		if len(parts) >= 2 {
 			scannedEpisodes = append(scannedEpisodes, tempEpisode{
-				Title:      episodeName,
+				Title:      str.Of(episodeName).Before(".").String(),
 				FilePath:   "/courses/" + courseName + "/" + episodeName,
 				CourseName: courseName,
 			})
@@ -484,17 +490,18 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 		}
 	}
 
+	// 若有新的剧集，则批量插入
 	if len(finalEpisodes) > 0 {
 		if err := tx.Create(&finalEpisodes); err != nil {
 			if err := tx.Rollback(); err != nil {
 				return response.InternalServerError(ctx, "E10", err)
 			}
-			return response.InternalServerError(ctx, "E5", err)
-		} else {
-			if err := tx.Commit(); err != nil {
-				return response.InternalServerError(ctx, "E11", err)
-			}
+			return response.InternalServerError(ctx, "E12", err)
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return response.InternalServerError(ctx, "E11", err)
 	}
 
 	return response.Ok(ctx, "扫描完成", map[string]int{
