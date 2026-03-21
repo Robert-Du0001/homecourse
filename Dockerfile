@@ -26,14 +26,12 @@ FROM alpine:latest
 
 WORKDIR /www
 
-COPY --from=node-builder /node-build/public/ /www/public/
+COPY --from=node-builder /node-build/public/ ./public/
 
-COPY --from=builder /build/main /www/
-COPY --from=builder /build/entrypoint.sh /www/
-COPY --from=builder /build/storage/ /www/storage/
-COPY --from=builder /build/.env.example /www/.env
+COPY --from=builder /build/main /build/entrypoint.sh ./
+COPY --from=builder /build/storage/ ./storage/
+COPY --from=builder /build/.env.example ./.env
 
-RUN /www/main artisan key:generate && \
-    /www/main artisan jwt:secret
+RUN chmod +x ./entrypoint.sh
 
 ENTRYPOINT ["/bin/sh", "/www/entrypoint.sh"]
