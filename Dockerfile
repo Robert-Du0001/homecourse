@@ -33,8 +33,6 @@ COPY --from=builder /build/storage/ /www/storage/
 COPY --from=builder /build/.env.example /www/.env
 
 RUN /www/main artisan key:generate && \
-    /www/main artisan jwt:secret && \
-    /www/main artisan migrate && \
-    /www/main artisan app:init
+    /www/main artisan jwt:secret
 
-ENTRYPOINT ["/www/main"]
+ENTRYPOINT ["/bin/sh", "/www/entrypoint.sh"]
