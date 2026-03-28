@@ -1,60 +1,114 @@
 <script setup lang="ts">
-import { ArrowRight, Document, Fold, Expand } from "@element-plus/icons-vue";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Document,
+  Fold,
+  Expand,
+  ArrowRight as ArrowRightIcon,
+} from "@element-plus/icons-vue";
 import DPlayer from "dplayer";
 import { ElMessageBox } from "element-plus";
-import { onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { onMounted, ref, watch, onBeforeUnmount } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import type { CatchData } from "@/lib/js/api";
 import type { EpisodesResource } from "@/types/episode";
+import type { DPlayerDanmaku, DPlayerEvents } from "dplayer";
 
 import { request } from "@/lib/js/api";
 
 const videoRef = ref(null);
 const route = useRoute();
-const episodeId = route.params.id;
+const router = useRouter();
 const episode = ref<EpisodesResource>();
-/** 控制附件侧边栏展开收起 */
 const isCollapse = ref(false);
+let dp: DPlayer | null = null;
 
-/**
- * 在新窗口打开附件
- * @param id 附件 ID 或完整路径
- */
+/** 1. 获取并初始化数据 */
+async function loadEpisodeData(id: number) {
+  // 如果当前已经在看这一集了，就不重复加载
+  if (episode.value?.id === id) return;
+
+  try {
+    const res = await request<EpisodesResource>("GET", `/episodes/${id}`);
+    episode.value = res.data;
+
+    // 初始化或更新播放器
+    initOrUpdatePlayer(id);
+  } catch (e) {
+    console.error(e);
+    const rd = e as CatchData;
+    ElMessageBox.alert(rd.msg || "剧集加载失败", "温馨提示");
+  }
+}
+
+/** 2. 播放器逻辑：支持无刷新切换视频源 */
+function initOrUpdatePlayer(id: number) {
+  const videoUrl = `/videos/${id}`;
+
+  if (!videoRef.value) {
+    console.warn("Video container not found, retrying...");
+    return;
+  }
+
+  if (dp) {
+    // 如果播放器已存在，直接切换视频源，体验更顺滑
+    dp.switchVideo(
+      { url: videoUrl, type: "auto" },
+      undefined as unknown as DPlayerDanmaku,
+    );
+    dp.play();
+  } else {
+    // 第一次加载时创建实例
+    dp = new DPlayer({
+      container: videoRef.value,
+      autoplay: true,
+      screenshot: true,
+      hotkey: true,
+      playbackSpeed: [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 2.75, 3],
+      video: { url: videoUrl, type: "auto" },
+    });
+
+    // 自动播放下一集逻辑
+    dp.on("ended" as DPlayerEvents, () => {
+      if (episode.value?.navigation?.next) {
+        goToEpisode(episode.value.navigation.next.id);
+      }
+    });
+  }
+}
+
+/** 3. 页面跳转逻辑 */
+function goToEpisode(id: number) {
+  router.push(`/episodes/${id}`);
+}
+
+/** 4. 附件相关逻辑（保留你的原始代码） */
 function handleViewAttachment(id: number) {
   window.open(`/attachments/${id}`, "_blank");
 }
 
-/**
- * 切换附件侧边栏展开收起
- */
 function toggleSidebar() {
   isCollapse.value = !isCollapse.value;
 }
 
-onMounted(async () => {
-  try {
-    const episodeRes = await request<EpisodesResource>(
-      "GET",
-      `/episodes/${episodeId}`,
-    );
-    episode.value = episodeRes.data;
-  } catch (e) {
-    const rd = e as CatchData;
-    ElMessageBox.alert(rd.msg, "温馨提示", {
-      confirmButtonText: "确认",
-    });
-  }
+// 生命周期：组件挂载时加载
+onMounted(() => {
+  loadEpisodeData(Number(route.params.id));
+});
 
-  new DPlayer({
-    container: videoRef.value,
-    autoplay: true,
-    screenshot: true,
-    video: {
-      url: `/videos/${episodeId}`,
-      type: "auto",
-    },
-  });
+// 核心：监听路由变化，点击“下一集”时 URL 变了，这里会触发重新请求
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) loadEpisodeData(Number(newId));
+  },
+);
+
+// 组件卸载前销毁播放器，释放内存
+onBeforeUnmount(() => {
+  if (dp) dp.destroy();
 });
 </script>
 
@@ -112,24 +166,66 @@ onMounted(async () => {
       </el-breadcrumb>
 
       <div ref="videoRef" class="video-player" />
+
+      <div v-if="episode?.navigation" class="video-navigation">
+        <el-button
+          :disabled="!episode.navigation.prev"
+          :icon="ArrowLeft"
+          @click="goToEpisode(episode.navigation.prev!.id)"
+        >
+          上一集：{{ episode.navigation.prev?.title || "没有了" }}
+        </el-button>
+
+        <el-button
+          :disabled="!episode.navigation.next"
+          type="primary"
+          @click="goToEpisode(episode.navigation.next!.id)"
+        >
+          下一集：{{ episode.navigation.next?.title || "没有了" }}
+          <el-icon class="el-icon--right"><ArrowRightIcon /></el-icon>
+        </el-button>
+      </div>
     </main>
   </div>
 </template>
 
 <style scoped lang="scss">
+/* 此处保留你原有的全部 CSS 样式，并添加以下导航样式 */
+.video-navigation {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1000px;
+  margin-top: 24px;
+
+  .el-button {
+    flex: 1;
+    height: 48px;
+    font-size: 14px;
+
+    /* 核心：处理标题过长的情况 */
+    span {
+      display: inline-block;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
 .page-container {
   display: flex;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 100px);
   background-color: var(--el-bg-color-page);
   border-radius: 10px;
   transition: all 0.3s ease;
 
-  // 侧边栏样式
   .sidebar {
     display: flex;
     flex-direction: column;
     width: 260px;
-    overflow: hidden;
     background-color: var(--el-bg-color);
     border-right: 1px solid var(--el-border-color-light);
     transition: width 0.3s ease;
@@ -167,11 +263,10 @@ onMounted(async () => {
         color: rgb(96 98 102);
         cursor: pointer;
         border-radius: 6px;
-        transition: background 0.2s;
 
         &:hover {
           color: var(--el-color-primary);
-          background-color: rgb(64 158 255 / 10%); // 10% 透明度蓝
+          background-color: rgb(64 158 255 / 10%);
         }
 
         .file-name {
@@ -183,7 +278,6 @@ onMounted(async () => {
     }
   }
 
-  // 收起状态
   &.is-collapsed {
     .sidebar {
       width: 60px;
@@ -195,7 +289,6 @@ onMounted(async () => {
     }
   }
 
-  // 主内容区
   .main-content {
     display: flex;
     flex: 1;
@@ -211,7 +304,7 @@ onMounted(async () => {
     .video-player {
       width: 100%;
       max-width: 1000px;
-      aspect-ratio: 16 / 9; // 自动保持 16:9 比例
+      aspect-ratio: 16 / 9;
       background-color: rgb(0 0 0);
       border-radius: 12px;
       box-shadow: 0 8px 24px rgb(0 0 0 / 15%);

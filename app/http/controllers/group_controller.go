@@ -120,7 +120,7 @@ func (r *GroupController) Destroy(ctx http.Context) http.Response {
 		Exists(); err != nil {
 		return response.InternalServerError(ctx, "E1", err)
 	} else if exists {
-		return response.BadRequest(ctx, "此分组下有课程存在，请先删除课程", nil)
+		return response.BadRequest(ctx, "此分组下有剧集存在，请先删除剧集", nil)
 	}
 
 	if _, err := facades.Orm().Query().Model(&models.Group{}).

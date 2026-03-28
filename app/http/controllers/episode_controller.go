@@ -30,6 +30,7 @@ func (r *EpisodeController) Index(ctx http.Context) http.Response {
 
 	if err := facades.Orm().Query().Where("group_id", groupID).
 		Order("sort").
+		Order("id").
 		Get(&episodes); err != nil {
 		return response.InternalServerError(ctx, "E1", err)
 	}
@@ -60,6 +61,16 @@ func (r *EpisodeController) Show(ctx http.Context) http.Response {
 		Name      string `json:"name"`
 	}
 
+	type navigationEpisode struct {
+		ID    uint   `json:"id"`
+		Title string `json:"title"`
+	}
+
+	type navigation struct {
+		Prev *navigationEpisode `json:"prev"`
+		Next *navigationEpisode `json:"next"`
+	}
+
 	type episode struct {
 		ID    uint   `json:"id"`
 		Title string `json:"title"`
@@ -68,17 +79,54 @@ func (r *EpisodeController) Show(ctx http.Context) http.Response {
 
 		Group       *group       `json:"group"`
 		Attachments []attachment `json:"attachments"`
+
+		Navigation navigation `json:"navigation" gorm:"-"`
 	}
 
 	var resData episode
 
-	if err := facades.Orm().Query().With("Group.Course").With("Attachments").FindOrFail(&resData, episodeId); err != nil {
+	if err := facades.Orm().Query().With("Group.Course").With("Attachments").
+		FindOrFail(&resData, episodeId); err != nil {
 		if errors.Is(err, errors.OrmRecordNotFound) {
 			return response.BadRequest(ctx, "课程id不存在", nil)
 		}
 
-		return response.InternalServerError(ctx, "E3", err)
+		return response.InternalServerError(ctx, "E1", err)
 	}
+
+	// 获取该分组下的所有剧集简要信息，用于获取导航上下集
+	var allEpisodes []navigationEpisode
+	if err := facades.Orm().Query().Table("episodes").
+		Select("id", "title").
+		Where("group_id", resData.GroupID).
+		Order("sort").
+		Order("id").
+		Get(&allEpisodes); err != nil {
+		return response.InternalServerError(ctx, "E2", err)
+	}
+
+	// 寻找当前剧集的索引并提取前后项
+	nav := navigation{}
+	currentIndex := -1
+	for i, ep := range allEpisodes {
+		if ep.ID == resData.ID {
+			currentIndex = i
+			break
+		}
+	}
+
+	if currentIndex != -1 {
+		// 如果不是第一集，则有上一集
+		if currentIndex > 0 {
+			nav.Prev = &allEpisodes[currentIndex-1]
+		}
+		// 如果不是最后一集，则有下一集
+		if currentIndex < len(allEpisodes)-1 {
+			nav.Next = &allEpisodes[currentIndex+1]
+		}
+	}
+
+	resData.Navigation = nav
 
 	return response.Ok(ctx, "获取课集详情成功", resData)
 }
@@ -212,7 +260,7 @@ func (r *EpisodeController) UpdateSort(ctx http.Context) http.Response {
 // 创建剧集
 func (r *EpisodeController) Store(ctx http.Context) http.Response {
 	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
-		"title":     "required|string|max_len:20",
+		"title":     "required|string|max_len:30",
 		"file_path": "required|string",
 		"group_id":  "required|uint",
 	}, validation.Filters(map[string]string{
@@ -253,7 +301,7 @@ func (r *EpisodeController) Store(ctx http.Context) http.Response {
 func (r *EpisodeController) Update(ctx http.Context) http.Response {
 	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
 		"id":        "required|uint",
-		"title":     "required|string|max_len:20",
+		"title":     "required|string|max_len:30",
 		"file_path": "required|string",
 		"group_id":  "required|uint",
 	}, validation.Filters(map[string]string{

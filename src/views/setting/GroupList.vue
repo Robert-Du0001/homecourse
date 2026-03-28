@@ -66,7 +66,7 @@ async function loadGroups() {
 }
 
 /**
- * 设置课程分类
+ * 设置课程分组
  */
 async function setGroup() {
   let group;
@@ -249,8 +249,11 @@ onMounted(function () {
     <el-table-column prop="name" label="分组名" width="580" />
     <el-table-column width="180">
       <template #header>
-        默认分类
-        <el-tooltip content="扫描课程时，将自动添加到此分组中" placement="top">
+        默认分组
+        <el-tooltip
+          content="扫描课程时，将自动添加到此分组中。若课程有子目录，则会将子目录的下的剧集自动扫描到同名分组中"
+          placement="top"
+        >
           <el-icon><QuestionFilled /></el-icon>
         </el-tooltip>
       </template>

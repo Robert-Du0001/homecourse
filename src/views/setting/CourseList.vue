@@ -72,8 +72,11 @@ const categoryMap = computed(() => {
  * 扫描文件
  */
 async function scan() {
-  const { msg } = await request("PUT", "/admin/courses/scan");
-  ElMessage.success(msg);
+  const { msg, data } = await request<{ new_episodes: number }>(
+    "PUT",
+    "/admin/courses/scan",
+  );
+  ElMessage.success(`${msg}：增加 ${data.new_episodes} 个新视频`);
 
   await loadCourses();
 }
@@ -320,7 +323,7 @@ onMounted(function () {
           v-model="courseForm.title"
           autocomplete="off"
           placeholder="请输入课程标题"
-          maxlength="20"
+          maxlength="30"
           show-word-limit
         />
       </el-form-item>

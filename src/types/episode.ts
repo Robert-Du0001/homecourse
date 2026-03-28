@@ -28,6 +28,7 @@ export type EpisodesResource = {
       title: string;
     };
   };
+  /** 附件列表 */
   attachments: {
     /** 附件ID */
     id: number;
@@ -36,6 +37,23 @@ export type EpisodesResource = {
     /** 附件类型 */
     name: string;
   }[];
+  /** 剧集导航 */
+  navigation: {
+    /** 上一集 */
+    prev: {
+      /** 上一集ID */
+      id: number;
+      /** 上一集标题 */
+      title: string;
+    } | null;
+    /** 下一集 */
+    next: {
+      /** 下一集ID */
+      id: number;
+      /** 下一集标题 */
+      title: string;
+    } | null;
+  };
 };
 
 /**

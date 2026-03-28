@@ -97,4 +97,9 @@ function logout() {
     outline: none;
   }
 }
+
+.el-main {
+  box-sizing: border-box;
+  height: calc(100vh - 60px);
+}
 </style>
