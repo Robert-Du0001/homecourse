@@ -7,11 +7,12 @@ import {
   Rank,
 } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { number, object, string, ValidationError } from "yup";
 
 import type { EpisodesItemResource } from "@/types/episode";
+import type { GroupResource } from "@/types/group";
 
 import { request, type CatchData } from "@/lib/js/api";
 import { TableSortable } from "@/lib/js/tableSortable";
@@ -20,6 +21,8 @@ import { TableSortable } from "@/lib/js/tableSortable";
 const route = useRoute();
 /** 路由实例 */
 const router = useRouter();
+/** 分类数据 */
+const groups = ref<GroupResource[]>();
 /** 剧集分组列表 */
 const episodes = ref<EpisodesItemResource[]>([]);
 /** 是否显示添加/编辑课程分组对话框 */
@@ -36,7 +39,7 @@ const episodeForm = ref({
   /** 剧集ID */
   id: 0,
   /** 所属的剧集分组ID */
-  group_id: route.params.group_id,
+  group_id: 0,
   /** 剧集标题 */
   title: "",
   /** 剧集文件路径 */
@@ -54,6 +57,33 @@ const episodeSchema = object({
 });
 /** 表格排序实例 */
 let sortable: TableSortable | null = null;
+
+/** 分组查找映射表 { id: name } */
+const groupMap = computed(() => {
+  const map: Record<number, string> = {};
+  if (groups.value) {
+    groups.value.forEach((item) => {
+      map[item.id] = item.name;
+    });
+  }
+  return map;
+});
+
+/**
+ * 加载分组数据
+ */
+async function loadGroups() {
+  try {
+    const { data } = await request<GroupResource[]>(
+      "GET",
+      `/courses/${route.params.course_id}/groups`,
+    );
+    groups.value = data;
+  } catch (e) {
+    const { msg } = e as CatchData;
+    ElMessage.error(msg);
+  }
+}
 
 /**
  * 获取课程分组数据
@@ -108,6 +138,7 @@ function addEpisode() {
   episodeForm.value.id = 0;
   episodeForm.value.title = "";
   episodeForm.value.file_path = "";
+  episodeForm.value.group_id = Number(route.params.group_id!);
   dialogVisible.value = true;
 }
 
@@ -120,6 +151,7 @@ function editEpisode(episode: EpisodesItemResource) {
   episodeForm.value.id = episode.id;
   episodeForm.value.title = episode.title;
   episodeForm.value.file_path = episode.file_path;
+  episodeForm.value.group_id = episode.group_id;
   dialogVisible.value = true;
 }
 
@@ -173,12 +205,14 @@ async function handleSort(newIndex: number, oldIndex: number) {
   }
 }
 
-onMounted(function () {
+onMounted(async function () {
   // 初始化排序
   sortable = new TableSortable(".el-table__body-wrapper tbody", handleSort);
   sortable.init();
 
-  loadEpisodes();
+  await loadGroups();
+
+  await loadEpisodes();
 });
 </script>
 
@@ -214,10 +248,26 @@ onMounted(function () {
           v-model="episodeForm.title"
           placeholder="请输入标题名"
           autocomplete="off"
-          maxlength="20"
+          maxlength="30"
           show-word-limit
         />
       </el-form-item>
+
+      <el-form-item label="剧集分组" required label-width="80px">
+        <el-select
+          v-model="episodeForm.group_id"
+          placeholder="Select"
+          style="width: 240px"
+        >
+          <el-option
+            v-for="item in groups"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          />
+        </el-select>
+      </el-form-item>
+
       <el-form-item label="文件路径" required label-width="80px">
         <el-input
           v-model="episodeForm.file_path"
@@ -252,6 +302,13 @@ onMounted(function () {
     </el-table-column>
 
     <el-table-column prop="title" label="标题" width="280" />
+    <el-table-column prop="title" label="剧集分组" width="160">
+      <template #default="{ row }: { row: EpisodesItemResource }">
+        <el-tag :type="groupMap[row.group_id] ? 'primary' : 'danger'">{{
+          groupMap[row.group_id] || "未知分组"
+        }}</el-tag>
+      </template>
+    </el-table-column>
     <el-table-column prop="file_path" label="文件路径" width="380" />
     <el-table-column prop="created_at" label="创建日期" />
     <el-table-column fixed="right" label="操作" min-width="120">

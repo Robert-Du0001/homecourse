@@ -5,6 +5,7 @@ import (
 	"homecourse/app/http/response"
 	"homecourse/app/models"
 	netHttp "net/http"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -118,7 +119,7 @@ func (r *CourseController) Destroy(ctx http.Context) http.Response {
 // 添加课程 - 管理员
 func (r *CourseController) Store(ctx http.Context) http.Response {
 	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
-		"title":       "required|string|max_len:10",
+		"title":       "required|string|max_len:30",
 		"category_id": "uint|exists:categories",
 		"description": "string|max_len:200",
 	}, validation.Filters(map[string]string{
@@ -188,7 +189,7 @@ func (r *CourseController) Store(ctx http.Context) http.Response {
 func (r *CourseController) Update(ctx http.Context) http.Response {
 	validator, err := facades.Validation().Make(ctx, ctx.Request().All(), map[string]string{
 		"id":          "required|uint",
-		"title":       "required|string|max_len:10",
+		"title":       "required|string|max_len:30",
 		"category_id": "uint|exists:categories",
 		"description": "string|max_len:200",
 	}, validation.Filters(map[string]string{
@@ -327,138 +328,186 @@ func (r *CourseController) UpdateSort(ctx http.Context) http.Response {
 func (r *CourseController) Scan(ctx http.Context) http.Response {
 	files, err := facades.Storage().AllFiles("courses")
 	if err != nil {
-		return response.InternalServerError(ctx, "E0", err)
-	}
-
-	// 1. 预处理扫描到的文件数据
-	scannedCourseNames := make([]string, 0)
-	type tempEpisode struct {
-		Title      string
-		FilePath   string
-		CourseName string
-	}
-	scannedEpisodes := make([]tempEpisode, 0, len(files))
-
-	for _, file := range files {
-		parts := str.Of(file).Replace("\\", "/").Split("/")
-
-		courseName := parts[0]
-		episodeName := parts[1]
-
-		// 创建课程
-		if !slices.Contains(scannedCourseNames, courseName) {
-			scannedCourseNames = append(scannedCourseNames, courseName)
-		}
-
-		if len(parts) >= 2 {
-			scannedEpisodes = append(scannedEpisodes, tempEpisode{
-				Title:      str.Of(episodeName).Before(".").String(),
-				FilePath:   "/courses/" + courseName + "/" + episodeName,
-				CourseName: courseName,
-			})
-		}
-	}
-
-	// 2. 处理 Group：查重并批量插入
-
-	type course struct {
-		ID      uint
-		Title   string
-		GroupID uint
-	}
-
-	var existingCourses []course
-	courseArgs := make([]any, len(scannedCourseNames))
-	for i, v := range scannedCourseNames {
-		courseArgs[i] = v
-	}
-
-	if err := facades.Orm().Query().Table("courses AS c").
-		Select("c.id", "c.title", "g.id AS group_id").
-		Join("LEFT JOIN groups AS g on g.course_id = c.id").
-		WhereIn("c.title", courseArgs).
-		Where("g.is_default", true).
-		Get(&existingCourses); err != nil {
 		return response.InternalServerError(ctx, "E1", err)
 	}
 
-	// 构建已有课程 Map，方便快速查找
-	// 课程与分组ID的映射
-	CourseGroupIDMap := make(map[string]uint)
-	for _, c := range existingCourses {
-		CourseGroupIDMap[c.Title] = c.GroupID
+	// 1. 预处理数据结构
+	type tempEpisode struct {
+		Title      string
+		FilePath   string
+		GroupName  string // 临时存储分组名
+		CourseName string
 	}
 
-	// 获取默认课程分类
-	type category struct {
-		ID uint
+	// 记录每个课程下有哪些分组，以及是否有直接文件
+	type courseMeta struct {
+		Groups         []string
+		HasDirectFiles bool
+		DefaultGroup   string
 	}
-	var defaultCategory category
-	if err := facades.Orm().Query().Where("is_default", true).FirstOrFail(&defaultCategory); err != nil {
+
+	scannedEpisodes := make([]tempEpisode, 0, len(files))
+	courseMap := make(map[string]*courseMeta)
+
+	for _, file := range files {
+		// 标准化路径并分割
+		pathStr := str.Of(file).Replace("\\", "/").LTrim("/").String()
+		parts := strings.Split(pathStr, "/")
+
+		if len(parts) < 2 {
+			continue
+		} // 忽略根目录下的文件（必须在根目录下创建子目录，否则不会被扫描）
+
+		courseName := parts[0]
+		var groupName string
+		var episodeTitle string
+
+		if _, ok := courseMap[courseName]; !ok {
+			courseMap[courseName] = &courseMeta{Groups: make([]string, 0)}
+		}
+
+		if len(parts) == 2 {
+			// 情况1: /courses/吉他/6.mp4 -> 直接文件
+			groupName = "默认分组"
+			episodeTitle = strings.TrimSuffix(parts[1], filepath.Ext(parts[1]))
+			courseMap[courseName].HasDirectFiles = true
+		} else {
+			// 情况2: /courses/吉他/进阶/测试/4.mp4 -> 子目录
+			groupName = parts[1]
+			// 剩余部分平铺作为标题: "测试/4"
+			subParts := parts[2:]
+			fullTitle := strings.Join(subParts, "/")
+			episodeTitle = strings.TrimSuffix(fullTitle, filepath.Ext(fullTitle))
+		}
+
+		// 记录分组（查重添加）
+		if !slices.Contains(courseMap[courseName].Groups, groupName) {
+			courseMap[courseName].Groups = append(courseMap[courseName].Groups, groupName)
+		}
+
+		scannedEpisodes = append(scannedEpisodes, tempEpisode{
+			Title:      episodeTitle,
+			FilePath:   "/courses/" + pathStr,
+			GroupName:  groupName,
+			CourseName: courseName,
+		})
+	}
+
+	// 确定每个课程的默认分组
+	for _, meta := range courseMap {
+		if meta.HasDirectFiles {
+			meta.DefaultGroup = "默认分组"
+		} else if len(meta.Groups) > 0 {
+			// 按照字母顺序或扫描顺序取第一个子目录
+			meta.DefaultGroup = meta.Groups[0]
+		}
+	}
+
+	// 2. 数据库操作
+	tx, _ := facades.Orm().Query().BeginTransaction()
+
+	// 获取默认分类
+	var defaultCategory models.Category
+	if err := facades.Orm().Query().Where("is_default", true).
+		First(&defaultCategory); err != nil {
 		if !errors.Is(err, errors.OrmRecordNotFound) {
 			return response.InternalServerError(ctx, "E2", err)
 		}
 
-		// 如果默认课程分类不存在，则无分类
 		defaultCategory.ID = 0
 	}
 
-	// 找出需要新创建的课程
-	var newGroups []models.Group
-	var newCourses []models.Course
-	for _, name := range scannedCourseNames {
-		if _, exists := CourseGroupIDMap[name]; !exists {
-			newCourses = append(
-				newCourses,
-				models.Course{
-					CategoryID: defaultCategory.ID,
-					Title:      name,
-				})
-		}
+	// 处理课程
+	allCourseNames := make([]any, 0, len(courseMap))
+	for name := range courseMap {
+		allCourseNames = append(allCourseNames, name)
 	}
 
-	tx, _ := facades.Orm().Query().BeginTransaction()
+	var existingCourses []models.Course
+	if err := tx.Table("courses").WhereIn("title", allCourseNames).
+		Get(&existingCourses); err != nil {
+		if err := tx.Rollback(); err != nil {
+			return response.InternalServerError(ctx, "E3", err)
+		}
+		return response.InternalServerError(ctx, "E4", err)
+	}
 
-	// 同时创建个默认分组
-	if len(newCourses) > 0 {
-		if err := tx.Create(&newCourses); err != nil {
-			if err := tx.Rollback(); err != nil {
+	existingCourseMap := make(map[string]uint)
+	for _, c := range existingCourses {
+		existingCourseMap[c.Title] = c.ID
+	}
+
+	// 创建新课程
+	for name := range courseMap {
+		if _, exists := existingCourseMap[name]; !exists {
+			newC := models.Course{Title: name, CategoryID: defaultCategory.ID}
+			if err := tx.Create(&newC); err != nil {
+				if err := tx.Rollback(); err != nil {
+					return response.InternalServerError(ctx, "E5", err)
+				}
 				return response.InternalServerError(ctx, "E6", err)
 			}
-			return response.InternalServerError(ctx, "E3", err)
-		} else {
-			// 根据新创建的课程ID，设置默认分组
-			for _, nc := range newCourses {
-				newGroups = append(newGroups, models.Group{
-					CourseID:  nc.ID,
-					IsDefault: true,
-					Name:      "默认分组",
-				})
-			}
-
-			// 创建默认分组
-			if err := tx.Create(&newGroups); err != nil {
-				if err := tx.Rollback(); err != nil {
-					return response.InternalServerError(ctx, "E7", err)
-				}
-				return response.InternalServerError(ctx, "E8", err)
-			} else {
-				// 填充课程到剧集分组的映射
-				for _, nc := range newCourses {
-					for _, ng := range newGroups {
-						if nc.ID == ng.CourseID {
-							CourseGroupIDMap[nc.Title] = ng.ID
-							break
-						}
-					}
-				}
-			}
-
+			existingCourseMap[name] = newC.ID
 		}
 	}
 
-	// 3. 处理 Episode：查重并批量插入
-	// 提取所有扫描到的路径
+	// 处理分组 (Group)
+	// key: CourseID_GroupName -> value: GroupID
+	groupMapping := make(map[string]uint)
+	// 记录 GroupID -> 现有剧集数量
+	groupCurrentCount := make(map[uint]uint)
+
+	for courseName, meta := range courseMap {
+		courseID := existingCourseMap[courseName]
+
+		// 查出该课程下现有的所有分组
+		var existingGroups []models.Group
+		if err := tx.Where("course_id", courseID).Get(&existingGroups); err != nil {
+			if err := tx.Rollback(); err != nil {
+				return response.InternalServerError(ctx, "E7", err)
+			}
+			return response.InternalServerError(ctx, "E8", err)
+		}
+
+		existingGroupNameMap := make(map[string]uint)
+		for _, g := range existingGroups {
+			existingGroupNameMap[g.Name] = g.ID
+			groupMapping[fmt.Sprintf("%d_%s", courseID, g.Name)] = g.ID
+
+			// 查询该分组下已有的剧集数量，作为 sort 的起点
+			var count int64
+			if count, err = tx.Table("episodes").Where("group_id", g.ID).Count(); err != nil {
+				if err := tx.Rollback(); err != nil {
+					return response.InternalServerError(ctx, "E5", err)
+				}
+				return response.InternalServerError(ctx, "E6", err)
+			}
+			groupCurrentCount[g.ID] = uint(count)
+		}
+
+		// 创建缺失的分组
+		for _, gName := range meta.Groups {
+			if _, exists := existingGroupNameMap[gName]; !exists {
+				newG := models.Group{
+					CourseID:  courseID,
+					Name:      gName,
+					IsDefault: gName == meta.DefaultGroup, // 根据预判设置默认值
+				}
+				if err := tx.Create(&newG); err != nil {
+					if err := tx.Rollback(); err != nil {
+						return response.InternalServerError(ctx, "E9", err)
+					}
+					return response.InternalServerError(ctx, "E10", err)
+				}
+				groupMapping[fmt.Sprintf("%d_%s", courseID, gName)] = newG.ID
+
+				// 新创建的分组，起始数量为 0
+				groupCurrentCount[newG.ID] = 0
+			}
+		}
+	}
+
+	// 3. 处理剧集 (Episode)
 	allPaths := make([]any, len(scannedEpisodes))
 	for i, e := range scannedEpisodes {
 		allPaths[i] = e.FilePath
@@ -467,45 +516,51 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 	var existingEpisodes []models.Episode
 	if err := tx.WhereIn("file_path", allPaths).Get(&existingEpisodes); err != nil {
 		if err := tx.Rollback(); err != nil {
-			return response.InternalServerError(ctx, "E9", err)
+			return response.InternalServerError(ctx, "E11", err)
 		}
-		return response.InternalServerError(ctx, "E4", err)
+		return response.InternalServerError(ctx, "E12", err)
 	}
 
-	// 构建已有 Episode 的 Map
 	existingPathMap := make(map[string]bool)
 	for _, e := range existingEpisodes {
 		existingPathMap[e.FilePath] = true
 	}
 
-	// 过滤出真正需要插入的单集
 	var finalEpisodes []models.Episode
 	for _, se := range scannedEpisodes {
 		if _, exists := existingPathMap[se.FilePath]; !exists {
+			cID := existingCourseMap[se.CourseName]
+			gID := groupMapping[fmt.Sprintf("%d_%s", cID, se.GroupName)]
+
+			// 获取该分组当前的计数值
+			currentSort := groupCurrentCount[gID]
+
 			finalEpisodes = append(finalEpisodes, models.Episode{
-				GroupID:  CourseGroupIDMap[se.CourseName],
+				GroupID:  gID,
 				Title:    se.Title,
 				FilePath: se.FilePath,
+				Sort:     currentSort,
 			})
+
+			// 更新计数值，保证同一次扫描中的下一集 sort 会递增
+			groupCurrentCount[gID]++
 		}
 	}
 
-	// 若有新的剧集，则批量插入
 	if len(finalEpisodes) > 0 {
 		if err := tx.Create(&finalEpisodes); err != nil {
 			if err := tx.Rollback(); err != nil {
-				return response.InternalServerError(ctx, "E10", err)
+				return response.InternalServerError(ctx, "E13", err)
 			}
-			return response.InternalServerError(ctx, "E12", err)
+			return response.InternalServerError(ctx, "E14", err)
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		return response.InternalServerError(ctx, "E11", err)
+		return response.InternalServerError(ctx, "E15", err)
 	}
 
-	return response.Ok(ctx, "扫描完成", map[string]int{
-		"new_courses":  len(newCourses),
+	return response.Ok(ctx, "扫描成功", map[string]int{
 		"new_episodes": len(finalEpisodes),
 	})
 }

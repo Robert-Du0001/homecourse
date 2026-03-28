@@ -24,6 +24,8 @@ RUN go build --ldflags "-s -w -extldflags -static" -o main .
 
 FROM alpine:latest
 
+RUN apk add --no-cache tzdata
+
 WORKDIR /www
 
 COPY --from=node-builder /node-build/public/ ./public/
