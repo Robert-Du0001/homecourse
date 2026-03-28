@@ -101,8 +101,10 @@ func (r *CourseController) Destroy(ctx http.Context) http.Response {
 	courseId := ctx.Request().Route("id")
 
 	// 如果课程下有剧集，则不能删除
-	if exists, err := facades.Orm().Query().Model(&models.Episode{}).
-		Where("course_id", courseId).Exists(); err != nil {
+	if exists, err := facades.Orm().Query().Table("episodes").
+		Join("JOIN groups ON episodes.group_id = groups.id").
+		Where("groups.course_id", courseId).
+		Exists(); err != nil {
 		return response.InternalServerError(ctx, "E1", err)
 	} else if exists {
 		return response.BadRequest(ctx, "课程下有剧集，请先删除剧集", nil)
@@ -147,28 +149,32 @@ func (r *CourseController) Store(ctx http.Context) http.Response {
 
 	// 获取封面文件，不通过Bind中的获取
 	// 不光是获取不到，验证也有问题
+	var coverPath string
 	file, err := ctx.Request().File("cover_file")
 	if err != nil {
-		return response.InternalServerError(ctx, "E3", nil)
-	}
+		// 如果不是文件没上传的错误，则需要报错
+		if !errors.Is(err, netHttp.ErrMissingFile) {
+			return response.InternalServerError(ctx, "E3", err)
+		}
+	} else {
+		// 验证 MIME 类型
+		mime, err := file.MimeType()
+		if err != nil {
+			return response.InternalServerError(ctx, "E4", err)
+		}
 
-	// 验证 MIME 类型
-	mime, err := file.MimeType()
-	if err != nil {
-		return response.InternalServerError(ctx, "E4", err)
-	}
+		// 定义允许的类型
+		allowMimes := facades.Config().Get("app.allow_img_mimes")
 
-	// 定义允许的类型
-	allowMimes := facades.Config().Get("app.allow_img_mimes")
+		if !allowMimes.(map[string]bool)[mime] {
+			return response.BadRequest(ctx, "不支持的文件格式: "+mime, nil)
+		}
 
-	if !allowMimes.(map[string]bool)[mime] {
-		return response.BadRequest(ctx, "不支持的文件格式: "+mime, nil)
-	}
-
-	// 保存封面文件
-	coverPath, err := facades.Storage().PutFile("/covers", file)
-	if err != nil {
-		return response.InternalServerError(ctx, "E5", nil)
+		// 保存封面文件
+		coverPath, err = facades.Storage().PutFile("/covers", file)
+		if err != nil {
+			return response.InternalServerError(ctx, "E5", nil)
+		}
 	}
 
 	course := &models.Course{
@@ -368,7 +374,7 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 
 		if len(parts) == 2 {
 			// 情况1: /courses/吉他/6.mp4 -> 直接文件
-			groupName = "默认分组"
+			groupName = "__COURSE_DIRECT_FILE__"
 			episodeTitle = strings.TrimSuffix(parts[1], filepath.Ext(parts[1]))
 			courseMap[courseName].HasDirectFiles = true
 		} else {
@@ -381,7 +387,7 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 		}
 
 		// 记录分组（查重添加）
-		if !slices.Contains(courseMap[courseName].Groups, groupName) {
+		if groupName != "__COURSE_DIRECT_FILE__" && !slices.Contains(courseMap[courseName].Groups, groupName) {
 			courseMap[courseName].Groups = append(courseMap[courseName].Groups, groupName)
 		}
 
@@ -469,6 +475,18 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 			return response.InternalServerError(ctx, "E8", err)
 		}
 
+		var currentDefaultGroupID uint
+		hasDefault := false
+		for _, g := range existingGroups {
+			if g.IsDefault {
+				currentDefaultGroupID = g.ID
+				hasDefault = true
+				break
+			}
+		}
+
+		// 如果数据库里已经有分组了但没设默认，或者这是个完全的新课程
+		// 需要从 meta.Groups 里选一个作为未来的默认组（如果数据库没有的话）
 		existingGroupNameMap := make(map[string]uint)
 		for _, g := range existingGroups {
 			existingGroupNameMap[g.Name] = g.ID
@@ -488,10 +506,17 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 		// 创建缺失的分组
 		for _, gName := range meta.Groups {
 			if _, exists := existingGroupNameMap[gName]; !exists {
+				// 只有当该课程目前【完全没有】默认分组时，才把新创建的第一个分组设为默认
+				isDefault := false
+				if !hasDefault {
+					isDefault = true
+					hasDefault = true // 标记已有，后面的新组就不再设为默认了
+				}
+
 				newG := models.Group{
 					CourseID:  courseID,
 					Name:      gName,
-					IsDefault: gName == meta.DefaultGroup, // 根据预判设置默认值
+					IsDefault: isDefault,
 				}
 				if err := tx.Create(&newG); err != nil {
 					if err := tx.Rollback(); err != nil {
@@ -505,6 +530,24 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 				groupCurrentCount[newG.ID] = 0
 			}
 		}
+
+		// --- 关键：处理那些直接放在课程根目录下的文件 ---
+		// 如果没有子目录，也没有现成的分组，此时必须强行创建一个
+		if meta.HasDirectFiles && !hasDefault {
+			newG := models.Group{
+				CourseID:  courseID,
+				Name:      "默认分组",
+				IsDefault: true,
+			}
+			if err := tx.Create(&newG); err != nil {
+				return response.InternalServerError(ctx, "E16", err)
+			}
+			currentDefaultGroupID = newG.ID
+			groupMapping[fmt.Sprintf("%d_%s", courseID, "默认分组")] = newG.ID
+		}
+
+		// 将占位符映射到最终的默认分组 ID 上
+		groupMapping[fmt.Sprintf("%d___COURSE_DIRECT_FILE__", courseID)] = currentDefaultGroupID
 	}
 
 	// 3. 处理剧集 (Episode)

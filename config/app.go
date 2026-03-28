@@ -54,9 +54,6 @@ func init() {
 		// will not be safe. Please do this before deploying an application!
 		"key": config.Env("APP_KEY", ""),
 
-		// Application Version
-		"version": "v1.0.0-alpha.4",
-
 		// 定义允许的图片类型
 		"allow_img_mimes": map[string]bool{
 			"image/jpeg": true,
