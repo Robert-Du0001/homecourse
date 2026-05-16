@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 
 import { useUserStore } from "@/store/user";
+import { UserRole } from "@/types/user";
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -62,7 +63,10 @@ function logout() {
                   </div>
                   <template #dropdown>
                     <el-dropdown-menu>
-                      <el-dropdown-item @click="goToSetting">
+                      <el-dropdown-item
+                        v-if="userStore.role === UserRole.ADMIN"
+                        @click="goToSetting"
+                      >
                         设置
                       </el-dropdown-item>
                       <el-dropdown-item divided @click="logout">

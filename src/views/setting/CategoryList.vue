@@ -245,7 +245,7 @@ onMounted(() => {
       </template>
     </el-table-column>
     <el-table-column prop="created_at" label="创建日期" />
-    <el-table-column fixed="right" label="操作" min-width="120">
+    <el-table-column fixed="right" label="操作" min-width="130">
       <template #default="{ row }: { row: CategoryResource }">
         <el-tooltip content="编辑" placement="top">
           <el-button

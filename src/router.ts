@@ -106,17 +106,15 @@ router.beforeEach(async (to) => {
     return { name: "Index" };
   }
 
-  if (to.name === "Index") {
-    if (!userStore.name) {
-      try {
-        const resData = await request<UserResource>("GET", "/user");
-        userStore.$patch(resData.data);
-      } catch (e) {
-        const rd = e as CatchData;
-        ElMessageBox.alert(rd.msg, "温馨提示", {
-          confirmButtonText: "确认",
-        });
-      }
+  if (token.value && !userStore.name) {
+    try {
+      const resData = await request<UserResource>("GET", "/user");
+      userStore.$patch(resData.data);
+    } catch (e) {
+      const rd = e as CatchData;
+      ElMessageBox.alert(rd.msg, "温馨提示", {
+        confirmButtonText: "确认",
+      });
     }
   }
 

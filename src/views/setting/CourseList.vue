@@ -72,11 +72,13 @@ const categoryMap = computed(() => {
  * 扫描文件
  */
 async function scan() {
-  const { msg, data } = await request<{ new_episodes: number }>(
-    "PUT",
-    "/admin/courses/scan",
+  const { msg, data } = await request<{
+    new_episodes: number;
+    new_attachments: number;
+  }>("PUT", "/admin/courses/scan");
+  ElMessage.success(
+    `${msg}：增加 ${data.new_episodes} 个新视频，${data.new_attachments} 个新附件`,
   );
-  ElMessage.success(`${msg}：增加 ${data.new_episodes} 个新视频`);
 
   await loadCourses();
 }
@@ -381,7 +383,7 @@ onMounted(function () {
     <el-table-column prop="title" label="课程标题" width="280" />
     <el-table-column prop="description" label="简介" width="580" />
     <el-table-column prop="created_at" label="创建日期" />
-    <el-table-column fixed="right" label="操作" min-width="120">
+    <el-table-column fixed="right" label="操作" min-width="170">
       <template #default="{ row }: { row: CourseResource }">
         <el-tooltip content="编辑" placement="top">
           <el-button

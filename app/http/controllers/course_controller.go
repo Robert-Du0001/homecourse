@@ -570,6 +570,7 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 	}
 
 	var finalEpisodes []models.Episode
+
 	for _, se := range scannedEpisodes {
 		if _, exists := existingPathMap[se.FilePath]; !exists {
 			cID := existingCourseMap[se.CourseName]
@@ -603,8 +604,98 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 		return response.InternalServerError(ctx, "E15", err)
 	}
 
+	// 4. 扫描 attachments 目录，根据文件路径自动识别并关联剧集
+	newAttachmentCount := 0
+	attFiles, err := facades.Storage().AllFiles("attachments")
+	if err == nil && len(attFiles) > 0 {
+		// 获取所有剧集及其完整路径信息
+		type episodeFullInfo struct {
+			EpisodeID  uint
+			CourseName string
+			GroupName  string
+			Title      string
+		}
+
+		var allEpisodes []models.Episode
+		if err := facades.Orm().Query().Get(&allEpisodes); err == nil {
+			var episodeInfos []episodeFullInfo
+
+			for _, ep := range allEpisodes {
+				var g models.Group
+				if err := facades.Orm().Query().Find(&g, ep.GroupID); err != nil {
+					continue
+				}
+				var c models.Course
+				if err := facades.Orm().Query().Find(&c, g.CourseID); err != nil {
+					continue
+				}
+
+				episodeInfos = append(episodeInfos, episodeFullInfo{
+					EpisodeID:  ep.ID,
+					CourseName: c.Title,
+					GroupName:  g.Name,
+					Title:      ep.Title,
+				})
+			}
+
+			// 现有附件路径去重
+			var existingAtts []models.Attachment
+			if err := facades.Orm().Query().Get(&existingAtts); err == nil {
+				existingAttPathSet := make(map[string]bool)
+				for _, a := range existingAtts {
+					existingAttPathSet[a.FilePath] = true
+				}
+
+				var newAttachments []models.Attachment
+				for _, attFile := range attFiles {
+					attPath := str.Of(attFile).Replace("\\", "/").LTrim("/").String()
+
+					if existingAttPathSet[attPath] {
+						continue
+					}
+
+					// 移除 "attachments/" 前缀，按 / 分割路径
+					relativePath := strings.TrimPrefix(attPath, "attachments/")
+					parts := strings.Split(relativePath, "/")
+					if len(parts) < 4 {
+						continue // 路径深度不够（至少需要: 课程/分组/剧集/文件名）
+					}
+
+					// parts[0]=课程名, parts[1]=分组名, parts[2]=剧集名, parts[3:]=文件名
+					courseName := parts[0]
+					groupName := parts[1]
+					episodeTitle := parts[2]
+					fileName := strings.Join(parts[3:], "/")
+
+					// 精确匹配剧集
+					for _, info := range episodeInfos {
+						if info.CourseName == courseName &&
+							info.GroupName == groupName &&
+							info.Title == episodeTitle {
+							newAttachments = append(newAttachments, models.Attachment{
+								EpisodeID: info.EpisodeID,
+								Name:      fileName,
+								FilePath:  attPath,
+							})
+							break
+						}
+					}
+				}
+
+				if len(newAttachments) > 0 {
+					if err := facades.Orm().Query().Create(&newAttachments); err != nil {
+						facades.Log().Warningf("批量保存附件失败: %v", err)
+					} else {
+						newAttachmentCount = len(newAttachments)
+					}
+				}
+			}
+		}
+	}
+
 	return response.Ok(ctx, "扫描成功", map[string]int{
-		"new_episodes": len(finalEpisodes),
+		"new_episodes":    len(finalEpisodes),
+		"new_attachments": newAttachmentCount,
 	})
 }
 
