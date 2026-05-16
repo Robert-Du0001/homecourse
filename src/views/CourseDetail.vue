@@ -135,8 +135,10 @@ onMounted(async function () {
 <style scoped lang="scss">
 .content {
   width: 1200px;
+  max-width: 100%;
   height: calc(100vh - 100px);
   margin: 0 auto;
+  overflow-y: auto;
 
   .course-panel {
     min-height: 368px;
@@ -235,6 +237,92 @@ onMounted(async function () {
     .episode-item {
       padding: 6px;
       font-size: 16px;
+    }
+  }
+}
+
+// 平板适配
+@media (width <= 1024px) {
+  .content {
+    height: auto;
+    min-height: calc(100vh - 100px);
+
+    .course-panel {
+      .course-info {
+        gap: 20px;
+
+        .cover {
+          width: 360px;
+          height: 203px;
+        }
+
+        .intro {
+          .description {
+            -webkit-line-clamp: 7;
+          }
+        }
+      }
+    }
+  }
+}
+
+// 移动端适配
+@media (width <= 768px) {
+  .content {
+    height: auto;
+    min-height: calc(100vh - 100px);
+    padding: 0 10px;
+
+    .course-panel {
+      padding: 12px;
+
+      .course-info {
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 16px;
+
+        .cover {
+          width: 100%;
+          height: auto;
+          aspect-ratio: 16 / 9;
+        }
+
+        .intro {
+          .title {
+            font-size: 18px;
+          }
+
+          .description {
+            -webkit-line-clamp: 5;
+            font-size: 14px;
+          }
+        }
+      }
+    }
+
+    .filter-container {
+      margin: 12px 0;
+
+      :deep(.el-segmented) {
+        --el-border-radius-base: 20px;
+      }
+    }
+
+    .episodes-panel {
+      margin-top: 16px;
+
+      .catalogue-title {
+        margin-left: 16px;
+
+        .catalogue-title-img {
+          height: 28px;
+        }
+      }
+
+      .episode-item {
+        padding: 10px 6px;
+        font-size: 14px;
+      }
     }
   }
 }

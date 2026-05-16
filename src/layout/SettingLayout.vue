@@ -5,16 +5,36 @@ import {
   Management,
   Expand,
   Fold,
+  Menu as IconMenu,
 } from "@element-plus/icons-vue";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
 // 控制展开状态，false 为展开，true 为收缩
 const isCollapse = ref(false);
+// 移动端侧边栏开关
+const mobileOpen = ref(false);
 const router = useRouter();
+const route = useRoute();
+
+// 移动端路由切换后自动关闭侧边栏
+watch(
+  () => route.path,
+  () => {
+    mobileOpen.value = false;
+  },
+);
 
 function goToIndex() {
   router.push({ name: "Index" });
+}
+
+function toggleMobileSidebar() {
+  mobileOpen.value = !mobileOpen.value;
+  // 移动端打开时确保侧边栏是展开状态
+  if (mobileOpen.value) {
+    isCollapse.value = false;
+  }
 }
 </script>
 
@@ -33,10 +53,24 @@ function goToIndex() {
             <el-image class="logo" src="/favicon.svg" />
             <span class="logo-txt">家庭学坊后台管理</span>
           </el-col>
+          <el-col :xs="6" :sm="0" class="mobile-menu-col">
+            <el-button
+              class="mobile-menu-btn"
+              :icon="IconMenu"
+              text
+              @click="toggleMobileSidebar"
+            />
+          </el-col>
         </el-row>
       </el-header>
       <el-container>
-        <el-aside :class="['admin-aside', isCollapse ? 'is-collapsed' : '']">
+        <el-aside
+          :class="[
+            'admin-aside',
+            isCollapse ? 'is-collapsed' : '',
+            mobileOpen ? 'is-mobile-open' : '',
+          ]"
+        >
           <el-scrollbar>
             <el-menu
               class="admin-menu"
@@ -80,6 +114,11 @@ function goToIndex() {
             </el-icon>
           </div>
         </el-aside>
+        <!-- 移动端遮罩 -->
+        <div
+          :class="['mobile-overlay', mobileOpen ? 'is-visible' : '']"
+          @click="mobileOpen = false"
+        />
         <el-main><router-view /></el-main>
       </el-container>
     </el-container>
@@ -105,6 +144,16 @@ function goToIndex() {
       font-size: 24px;
       font-weight: bold;
       vertical-align: 15px;
+    }
+  }
+
+  .mobile-menu-col {
+    display: none;
+    text-align: right;
+
+    .mobile-menu-btn {
+      margin-top: 10px;
+      font-size: 24px;
     }
   }
 }
@@ -169,6 +218,101 @@ function goToIndex() {
 
   .btns {
     text-align: right;
+  }
+}
+
+// 移动端适配
+@media (width <= 768px) {
+  .admin-header {
+    .link-index {
+      .logo-txt {
+        font-size: 16px;
+        vertical-align: 12px;
+      }
+
+      .logo {
+        width: 36px;
+        height: 36px;
+      }
+    }
+
+    .mobile-menu-col {
+      display: block;
+    }
+  }
+
+  .admin-aside {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    z-index: 100;
+    height: calc(100vh - 56px);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+
+    // 展开时从左边滑入
+    &.is-mobile-open {
+      box-shadow: 2px 0 16px rgb(0 0 0 / 15%);
+      transform: translateX(0);
+    }
+
+    &.is-collapsed {
+      width: 64px;
+      transform: translateX(0);
+    }
+
+    &.is-collapsed.is-mobile-open {
+      width: 200px;
+    }
+  }
+
+  // 移动端遮罩层
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    pointer-events: none;
+    background: rgb(0 0 0 / 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+
+    &.is-visible {
+      pointer-events: auto;
+      opacity: 1;
+    }
+  }
+}
+
+// 表格操作栏移动端适配
+@media (width <= 768px) {
+  .header-panel {
+    // 移动端按钮占满宽度，左对齐
+    .el-col {
+      flex: 1 1 100%;
+      max-width: 100%;
+    }
+
+    .btns {
+      text-align: left;
+    }
+  }
+
+  // 表格横向滚动
+  :deep(.el-table) {
+    // 移动端表格自适应
+    .el-table__body-wrapper {
+      overflow-x: auto;
+    }
+  }
+
+  // 对话框宽度适配
+  :deep(.el-dialog) {
+    --el-dialog-width: 90%;
+  }
+
+  // el-main 内边距减小
+  .el-main {
+    padding: 10px;
   }
 }
 </style>

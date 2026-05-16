@@ -1,10 +1,25 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 
 import { useUserStore } from "@/store/user";
 
 const userStore = useUserStore();
 const router = useRouter();
+const avatarSize = ref(50);
+
+function onResize() {
+  avatarSize.value = window.innerWidth <= 768 ? 36 : 50;
+}
+
+onMounted(() => {
+  onResize();
+  window.addEventListener("resize", onResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", onResize);
+});
 
 function goToIndex() {
   router.push({ name: "Index" });
@@ -43,7 +58,7 @@ function logout() {
               <el-col :span="6" :lg="{ push: 3 }">
                 <el-dropdown>
                   <div class="avatar">
-                    <el-avatar :size="50" src="/img/avatar.png" />
+                    <el-avatar :size="avatarSize" src="/img/avatar.png" />
                   </div>
                   <template #dropdown>
                     <el-dropdown-menu>
@@ -101,5 +116,37 @@ function logout() {
 .el-main {
   box-sizing: border-box;
   height: calc(100vh - 60px);
+}
+
+// 移动端适配
+@media (width <= 768px) {
+  .header {
+    .link-index {
+      .logo-txt {
+        font-size: 16px;
+        vertical-align: 12px;
+      }
+
+      .logo {
+        width: 36px;
+        height: 36px;
+        margin-top: 12px;
+      }
+    }
+
+    .avatar {
+      margin-top: 8px;
+    }
+  }
+
+  // 移动端 el-header 高度调整为 56px
+  :deep(.el-header) {
+    --el-header-height: 56px;
+  }
+
+  .el-main {
+    height: calc(100vh - 56px);
+    padding: 10px;
+  }
 }
 </style>

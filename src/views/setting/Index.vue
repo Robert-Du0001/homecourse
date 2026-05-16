@@ -107,4 +107,15 @@ onMounted(function () {
   background-color: var(--el-bg-color-overlay);
   border-radius: 4px;
 }
+
+// 移动端适配
+@media (width <= 768px) {
+  .statistic-card {
+    padding: 16px;
+  }
+
+  .mb-4 {
+    margin-bottom: 12px;
+  }
+}
 </style>

@@ -23,4 +23,16 @@ li,
 ol {
   list-style: none;
 }
+
+// 移动端全局适配
+@media (width <= 768px) {
+  html,
+  body {
+    // 防止 iOS Safari 双击缩放
+    touch-action: manipulation;
+
+    // 平滑滚动
+    -webkit-overflow-scrolling: touch;
+  }
+}
 </style>

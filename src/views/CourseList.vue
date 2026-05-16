@@ -225,4 +225,31 @@ onMounted(async function () {
 .el-empty {
   height: calc(100vh - 180px);
 }
+
+// 移动端适配
+@media (width <= 768px) {
+  .filter-container {
+    margin: 12px 0;
+
+    :deep(.el-segmented) {
+      --el-border-radius-base: 20px;
+    }
+  }
+
+  .course-list {
+    gap: 12px;
+    height: auto;
+    min-height: calc(100vh - 160px);
+    padding: 10px;
+
+    .course-card {
+      height: auto;
+      min-height: 320px;
+    }
+  }
+
+  .el-empty {
+    height: calc(100vh - 160px);
+  }
+}
 </style>

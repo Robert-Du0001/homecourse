@@ -5,6 +5,7 @@ import {
   Document,
   Fold,
   Expand,
+  FullScreen,
   ArrowRight as ArrowRightIcon,
 } from "@element-plus/icons-vue";
 import DPlayer from "dplayer";
@@ -23,6 +24,7 @@ const route = useRoute();
 const router = useRouter();
 const episode = ref<EpisodesResource>();
 const isCollapse = ref(false);
+const isLandscape = ref(false);
 let dp: DPlayer | null = null;
 
 /** 1. 获取并初始化数据 */
@@ -93,9 +95,57 @@ function toggleSidebar() {
   isCollapse.value = !isCollapse.value;
 }
 
+/** 5. 横屏播放 */
+async function toggleLandscape() {
+  const videoEl = videoRef.value as HTMLElement | null;
+  if (!videoEl) return;
+
+  if (isLandscape.value) {
+    // 退出横屏
+    try {
+      await document.exitFullscreen();
+    } catch {
+      // 忽略退出全屏失败
+    }
+  } else {
+    // 进入横屏全屏
+    try {
+      await videoEl.requestFullscreen();
+      // 锁定屏幕方向为横屏
+      const orientation = screen.orientation as ScreenOrientation & {
+        lock?: (o: string) => Promise<void>;
+      };
+      if (orientation?.lock) {
+        try {
+          await orientation.lock("landscape");
+        } catch {
+          // 部分浏览器不支持 orientation.lock
+        }
+      }
+    } catch (e) {
+      console.error("进入全屏失败:", e);
+    }
+  }
+}
+
+function onFullscreenChange() {
+  if (!document.fullscreenElement) {
+    // 退出全屏时恢复竖屏
+    isLandscape.value = false;
+    if (screen.orientation) {
+      (
+        screen.orientation as ScreenOrientation & { unlock?: () => void }
+      ).unlock?.();
+    }
+  } else {
+    isLandscape.value = true;
+  }
+}
+
 // 生命周期：组件挂载时加载
 onMounted(() => {
   loadEpisodeData(Number(route.params.id));
+  document.addEventListener("fullscreenchange", onFullscreenChange);
 });
 
 // 核心：监听路由变化，点击“下一集”时 URL 变了，这里会触发重新请求
@@ -109,11 +159,15 @@ watch(
 // 组件卸载前销毁播放器，释放内存
 onBeforeUnmount(() => {
   if (dp) dp.destroy();
+  document.removeEventListener("fullscreenchange", onFullscreenChange);
 });
 </script>
 
 <template>
-  <div class="page-container" :class="{ 'is-collapsed': isCollapse }">
+  <div
+    class="page-container"
+    :class="{ 'is-collapsed': isCollapse, 'is-fullscreen': isLandscape }"
+  >
     <aside class="sidebar">
       <div class="sidebar-header">
         <span v-show="!isCollapse">附件资料</span>
@@ -150,6 +204,19 @@ onBeforeUnmount(() => {
     </aside>
 
     <main class="main-content">
+      <!-- 移动端侧边栏开关 -->
+      <div class="mobile-attachment-toggle">
+        <el-button
+          v-if="episode?.attachments?.length"
+          size="small"
+          @click="isCollapse = !isCollapse"
+        >
+          <el-icon><Document /></el-icon>
+          {{ isCollapse ? "展开附件" : "收起附件" }}
+          ({{ episode.attachments.length }})
+        </el-button>
+      </div>
+
       <el-breadcrumb
         v-if="episode"
         :separator-icon="ArrowRight"
@@ -164,6 +231,17 @@ onBeforeUnmount(() => {
         </el-breadcrumb-item>
         <el-breadcrumb-item>{{ episode.title }}</el-breadcrumb-item>
       </el-breadcrumb>
+
+      <div class="video-toolbar">
+        <el-button
+          class="landscape-btn"
+          :icon="FullScreen"
+          size="small"
+          @click="toggleLandscape"
+        >
+          {{ isLandscape ? "退出横屏" : "横屏播放" }}
+        </el-button>
+      </div>
 
       <div ref="videoRef" class="video-player" />
 
@@ -301,6 +379,24 @@ onBeforeUnmount(() => {
       margin-bottom: 20px;
     }
 
+    .video-toolbar {
+      display: none; // 默认隐藏，仅移动端显示
+      justify-content: flex-end;
+      width: 100%;
+      max-width: 1000px;
+      margin-bottom: 8px;
+
+      .landscape-btn {
+        font-size: 13px;
+      }
+    }
+
+    .mobile-attachment-toggle {
+      display: none;
+      align-self: stretch;
+      margin-bottom: 10px;
+    }
+
     .video-player {
       width: 100%;
       max-width: 1000px;
@@ -308,6 +404,114 @@ onBeforeUnmount(() => {
       background-color: rgb(0 0 0);
       border-radius: 12px;
       box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+    }
+  }
+}
+
+// 移动端适配
+@media (width <= 768px) {
+  .page-container {
+    flex-direction: column;
+
+    .sidebar {
+      position: fixed;
+      top: 56px;
+      right: 0;
+      z-index: 50;
+      width: 260px;
+      height: calc(100vh - 56px);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+
+      &.is-mobile-visible {
+        box-shadow: -2px 0 16px rgb(0 0 0 / 15%);
+        transform: translateX(0);
+      }
+    }
+
+    &.is-collapsed {
+      // 移动端: 使用 is-collapsed 控制 sidebar 显隐
+      .sidebar {
+        position: static;
+        width: 260px;
+        height: auto;
+        max-height: 60vh;
+        border-right: none;
+        border-bottom: 1px solid var(--el-border-color-light);
+        border-radius: 0;
+        transform: none;
+
+        .sidebar-header {
+          padding: 12px 16px;
+        }
+
+        .attachment-list {
+          max-height: 200px;
+        }
+      }
+    }
+
+    .main-content {
+      padding: 10px;
+
+      .video-toolbar {
+        display: flex;
+      }
+
+      .mobile-attachment-toggle {
+        display: block;
+      }
+
+      .breadcrumb {
+        margin-bottom: 10px;
+        font-size: 12px;
+      }
+
+      .video-navigation {
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 16px;
+
+        .el-button {
+          height: 40px;
+          font-size: 13px;
+
+          span {
+            max-width: 120px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ========== 全屏横屏模式 ==========
+.page-container.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgb(0 0 0);
+  border-radius: 0;
+
+  .sidebar,
+  .breadcrumb,
+  .video-toolbar,
+  .video-navigation,
+  .mobile-attachment-toggle {
+    display: none !important;
+  }
+
+  .main-content {
+    justify-content: center;
+    padding: 0;
+
+    .video-player {
+      width: 100%;
+      max-width: 100%;
+      height: 100vh;
+      aspect-ratio: auto;
+      border-radius: 0;
+      box-shadow: none;
     }
   }
 }

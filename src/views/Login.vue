@@ -162,4 +162,26 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     margin-left: 10px;
   }
 }
+
+// 移动端适配
+@media (width <= 768px) {
+  .login-panel {
+    padding: 16px;
+    margin: 0 12px;
+    border-radius: 8px;
+
+    .login-title {
+      margin-top: 10px;
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+
+    .to-register {
+      display: block;
+      margin-top: 10px;
+      margin-left: 0;
+      text-align: center;
+    }
+  }
+}
 </style>
