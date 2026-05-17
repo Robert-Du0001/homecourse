@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRight, Delete, View } from "@element-plus/icons-vue";
+import { ArrowRight, Delete, Edit, View } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
@@ -84,6 +84,44 @@ const handleViewAttachment = (id: number) => {
   window.open(`/attachments/${id}`, "_blank");
 };
 
+/**
+ * 附件编辑相关
+ */
+const editDialogVisible = ref(false);
+const editForm = ref({
+  id: 0,
+  name: "",
+  file_path: "",
+});
+
+function editAttachment(att: AttachmentResource) {
+  editForm.value = {
+    id: att.id,
+    name: att.name,
+    file_path: att.file_path,
+  };
+  editDialogVisible.value = true;
+}
+
+async function saveAttachment() {
+  try {
+    const { msg } = await request(
+      "PUT",
+      `/admin/attachments/${editForm.value.id}`,
+      {
+        name: editForm.value.name,
+        file_path: editForm.value.file_path,
+      },
+    );
+    ElMessage.success(msg);
+    editDialogVisible.value = false;
+    await loadAttachments();
+  } catch (e) {
+    const { msg } = e as CatchData;
+    ElMessage.error(msg);
+  }
+}
+
 onMounted(function () {
   loadAttachments();
 });
@@ -138,7 +176,7 @@ onMounted(function () {
     <el-table-column prop="name" label="文件名" width="460" />
     <el-table-column prop="file_path" label="文件路径" width="520" />
     <el-table-column prop="created_at" label="创建日期" />
-    <el-table-column fixed="right" label="操作" width="260">
+    <el-table-column fixed="right" label="操作" min-width="220">
       <template #default="{ row }: { row: AttachmentResource }">
         <el-tooltip content="查看" placement="top">
           <el-button
@@ -146,6 +184,14 @@ onMounted(function () {
             :icon="View"
             circle
             @click="handleViewAttachment(row.id)"
+          />
+        </el-tooltip>
+        <el-tooltip content="编辑" placement="top">
+          <el-button
+            type="success"
+            :icon="Edit"
+            circle
+            @click="editAttachment(row)"
           />
         </el-tooltip>
         <el-tooltip content="删除" placement="top">
@@ -159,6 +205,37 @@ onMounted(function () {
       </template>
     </el-table-column>
   </el-table>
+
+  <!-- 编辑附件对话框 -->
+  <el-dialog
+    v-model="editDialogVisible"
+    title="编辑附件"
+    width="500"
+    :center="true"
+  >
+    <el-form :model="editForm">
+      <el-form-item label="文件名" label-width="80px">
+        <el-input
+          v-model="editForm.name"
+          placeholder="请输入文件名"
+          autocomplete="off"
+        />
+      </el-form-item>
+      <el-form-item label="文件路径" label-width="80px">
+        <el-input
+          v-model="editForm.file_path"
+          placeholder="请输入文件路径"
+          autocomplete="off"
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="editDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveAttachment">确认</el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped lang="scss">

@@ -77,6 +77,7 @@ func Api() {
 
 				// 附件相关路由
 				router.Post("episodes/{id}/attachments", attachmentController.Store)
+				router.Put("attachments/{id}", attachmentController.Update)
 				router.Delete("attachments/{id}", attachmentController.Destroy)
 				router.Get("attachments/statistic", attachmentController.Statistic)
 			})

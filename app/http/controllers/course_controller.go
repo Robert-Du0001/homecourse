@@ -648,7 +648,7 @@ func (r *CourseController) Scan(ctx http.Context) http.Response {
 
 				var newAttachments []models.Attachment
 				for _, attFile := range attFiles {
-					attPath := str.Of(attFile).Replace("\\", "/").LTrim("/").String()
+					attPath := "attachments/" + str.Of(attFile).Replace("\\", "/").LTrim("/").String()
 
 					if existingAttPathSet[attPath] {
 						continue

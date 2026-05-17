@@ -10,6 +10,9 @@ import (
 )
 
 func Web() {
+	// 剧集附件
+	facades.Route().Get("attachments/{id}", controllers.NewAttachmentController().Show)
+
 	// 处理静态文件
 	facades.Route().Static("assets", "public/assets")
 	facades.Route().Static("img", "public/img")
@@ -21,7 +24,7 @@ func Web() {
 		// 课程视频
 		facades.Route().Get("videos/{id}", controllers.NewEpisodeController().Play)
 		// 剧集附件
-		facades.Route().Get("attachments/{id}", controllers.NewAttachmentController().Show)
+		//facades.Route().Get("attachments/{id}", controllers.NewAttachmentController().Show)
 	})
 
 	facades.Route().Fallback(func(ctx http.Context) http.Response {
